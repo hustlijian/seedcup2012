@@ -1,0 +1,43 @@
+creAte DataBase 
+   seedCup ;   
+  uSe seedCup ;
+show databases;
+ creaTe table RefereeWrong 
+(name text,age int age1 ); 
+  
+
+ creaTe table Referee 
+ (name text,age  int );
+show Referee column;
+inSert into Referee values('zyf',12 20); 
+  inSert into Referee values('Yqm',13);
+select *from Referee; 
+inSert into Referee values('zyf',12);
+select *from Referee order by desc; 
+create table uSe (name text,age int);   
+ show tables; 
+insert into Referee values('fy' ,11  );
+insert into tableNotExist values ('zzw', 16)   ; 
+insert into  Referee  values ('wtq', 17);
+
+  select name,age from  Referee where age >= 15; 
+update Referee set ( age) = (30) where name == 'fy';
+  select name from  Referee where age > = 29; 
+select name from  Referee where age >= 31;
+alter table Referee  add address;
+alter table Referee alter column address text;
+show Referee column; 
+select address from Referee; 
+
+insert into  Referee (,,);
+insert into  Referee values('case' wrong,12,'qiming');
+insert into  Referee values('case',12,'qiming',);
+update Referee set (  name ,age  )=('fan','fda');
+select tablenameNotExist ,age from Referee where name='yf';
+select * from Referee where name=;
+select * from Referee where age <(6/(1-1));
+select * from Referee where age <(-1+2+);
+select name from Referee where age < (-1+2;
+
+ALTER TABLE table_name ADD fd as;
+
