@@ -2,29 +2,31 @@
 #include <string.h>
 #include <ctype.h>
 #include "CmdProcess.h"
+#include "DatabaseAPI.h"
+
+#define COL_NUM		20
+#define NAME_LENGHT 25
 
 char keywords[NUM_KEYWORDS][MAX_KEYWORDS_LENGTH]={
 	"create", "database","table", "alter","truncate","add","column","use",
-	"drop","rename","select","from","where","order","by", "desc", "incr", 
-	"update","set","delete", "insert", "into", "values", "show", 
-	"databases","int","float","text", "none","between","like","and", "or"
+		"drop","rename","select","from","where","order","by", "desc", "incr", 
+		"update","set","delete", "insert", "into", "values", "show", 
+		"databases","int","float","text", "none","between","like","and", "or"
 };
 char operatorwords[NUM_OPERATOR][MAX_OPERATOR] = { 
 	"(", ")","*", "/", "%","+", "-", "==", "~=", ">=", "<=", ">", "<","[",
-		"]",";",",","'","?"
+		"]",";",",","'","?","="
 };
 
-/*
- *Parameters:
- *	@str1:
- *	@str2:
- *Return:
- *	
- *Description:
- *	Compare two strings
- *Date:
- *	2012-10-21 10:58:18
- */
+char *p;  //当前处理到的字符位置
+char word[MAX_WORDLEGTH]; //保存当前的获得的单词
+int syn;  //保存当前的类型
+
+/*功能：
+ *     不区分大小写的字符比较
+ * 参数：
+ * 
+*/
 int mystrcmp(const char *str1, const char *str2)
 {
 	int i=0;
@@ -37,46 +39,36 @@ int mystrcmp(const char *str1, const char *str2)
 	return (c1-c2);
 }
 
-/*
- *Parameters:
- * @str:string without spaces
- *Return:
- *	0:incorrect input character
- *	else:type number
- *Description:
- *	Get the type number of the string
- *Date:
- *	2012-10-21 10:49:31
+/* 功能：
+ *		获得string的类型
+ * 参数：
+ * @str:  没有空格的字符串
+ * 返回：
+ *		整形，类型码,其中0代表不正确的输入字符
  */
 int getTypeNum(char *str)
 {
 	int i, flag;
 	
-	for (i=0, flag=0; str[i] && (isdigit(str[i]) || str[i]=='.'); i++)
+	for (i=0, flag=0;str[i]&&(isdigit(str[i])||str[i]=='.');i++)
 		if (str[i]=='.'){
 			flag++;
 		}
-	/* number */
-	if (str[i]=='\0')
+	if (str[i]=='\0')//数字
 	{
-		/* float */
-		if (flag==1) return 42; 
-		/* wrong */
-		if (flag>1) return 0;
-		/* integer */
-		return 41; 
+		if (flag==1) return 42; //浮点数
+		if (flag>1) return 0;//错误输入
+		return 41; //整数
 	} 
-	/* identifier */
-	if (isalpha(str[0])||str[0]=='_') 
+	if (isalpha(str[0])||str[0]=='_') //标识符
 	{
 		for (i=0;i<NUM_KEYWORDS;i++)
 			if (!mystrcmp(keywords[i], str))
 				break;
-		/* normal identifier */
-		if (i==NUM_KEYWORDS) return 40;
+		if (i==NUM_KEYWORDS) return 40;//一般标识符
 		else return (i+1);
 	}
-	/* operator */
+	//运算符
 	for (i=0;i<NUM_OPERATOR;i++)
 		if (!strcmp(str, operatorwords[i]))
 			break;
@@ -84,21 +76,11 @@ int getTypeNum(char *str)
 	else return 0;
 	return 0;
 }
-
 /*
- *Parameters:
- *	@str: the input string
- *	@word: store the result word
- *	@sys: the type of the word
- *	@wordLenght: the length of word
- *Return:
- *	Next position of the string 
- *Description: 
- *	Scaner the str, and store one words to word
- *Date:
- *	2012-10-21 10:44:58
+ *功能:
+ *     扫描字符串p，保存一个词到word
  */
-char *scaner(char *str, char *word, int *syn)
+void scaner()
 {
 	int i, j;
 	char ch, temp;
@@ -107,22 +89,27 @@ char *scaner(char *str, char *word, int *syn)
 		word[i] = '\0';
 
 	i = 0;
-	while((isspace(ch=str[i++]))) ; /* skip the space*/
-	if (ch&&(isalnum(ch)||ch=='_'||ch=='.'))  /* words or digits */
+	if(p==NULL) {
+		syn = 0;
+		word[0]='\0';
+		return;
+	}
+	while((isspace(ch=p[i++]))) ; /* 越过空字符*/
+	if (ch&&(isalnum(ch)||ch=='_'||ch=='.'))  /*单词或数字*/
 	{
 		j = 0;
 		while(ch&&(isalnum(ch)||ch=='_'||ch=='.')) {
 			word[j++] = ch;
-			ch = str[i++];
+			ch = p[i++];
 		}
 		word[j] = '\0';
-		(*syn) = getTypeNum(word); /* get the type number */
+		syn = getTypeNum(word); 
 	}
-	else if(ch){
+	else if(ch){   //运算符等
 		j = 0;
 		word[j++] = ch;
 		temp = ch;
-		ch = str[i++];
+		ch = p[i++];
 		switch (temp) {
 			case '=':
 				if (ch!='=')
@@ -147,34 +134,502 @@ char *scaner(char *str, char *word, int *syn)
 				break;
 		}
 		word[j] = '\0';
-		(*syn) = getTypeNum(word); /* get the type number */
+		syn = getTypeNum(word); 
+	} else //空
+	{
+		syn = 0;
+		word[0]='\0';
 	}
-	if(ch) return (str+i-1);   /* return the position */
-	else return NULL;
+	p = p+i-1;
+	if (*p=='\0')
+		p=NULL;
+}
+int isKeywords(char *str)
+{
+	int i;
+	for (i=0;i<NUM_KEYWORDS;i++)
+		if (!mystrcmp(str, keywords[i]))
+			return 1;
+	return 0;  //不是关键字
 }
 
-/*
- *Parameters:
- *	@cmd:one command(ended by ';')
- *Return:
- *	0:success
- *	-1:failed
- *Description:
- *	Deal with one command.
- *Date:
- *	2012-10-21 10:42:04
- */
-int processCmd(char *cmd)
+int checkDatabaseName(char *str)
 {
-	char *p = cmd;
-	char word[MAX_WORDLEGTH];
-	int syn;
+	int i;
+	for (i=0;str[i];i++)
+		if(!isalpha(str[i])&&str[i]!='_')
+			return 0;
+	return 1;
+}
+int createDatabaseCmd()
+{
+	char databaseName[NAME_LENGHT];
+	scaner();
+	if (syn!=40||isKeywords(word)) //不是关键字
+		return -1;
+	if (!checkDatabaseName(word)) //检查数据名，英文字符，下划线
+		return -1;
+	strcpy(databaseName, word);
 
-	do {
-		p = scaner(p, word, &syn);
-		if(word[0]) 
-			printf("(%s, %d)\n", word, syn);
-	} while (syn && (p != NULL));
-
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	if (createDatabase(word))//建立数据库
+		return -1;
 	return 0;
+}
+int createTableCmd()
+{
+	int countAmount, i;
+	char columnsName[COL_NUM][NAME_LENGHT];
+	char tableName[NAME_LENGHT];
+	COLUMN_TYPE columnType[COL_NUM];
+	char *p[COL_NUM];
+
+	scaner();
+	if (syn!=40 || isKeywords(word))//表名使用关键字
+		return -1;
+	if (!checkDatabaseName(word)) //检查数据名，英文字符，下划线
+		return -1;
+	strcpy(tableName,word);
+
+	scaner();
+	if(syn!=50)
+		return -1;
+	for (countAmount=0;countAmount<COL_NUM;countAmount++)
+	{
+		scaner();
+		if(syn!=40||isKeywords(word)) 
+			return -1;
+		strcpy(columnsName[countAmount],word);
+
+		scaner();
+		if(syn>25&&syn<29)  //指定类型26,27,28
+			columnType[countAmount] = syn-26;
+		else {
+			columnType[countAmount] = NONE;
+			if (syn==51) break; //右括号
+			if (syn!=66) return -1; //逗号
+		}
+
+		scaner();
+		if (syn==51) break; //右括号
+		if (syn!=66) return -1; //逗号
+	}
+
+	for (i=0;i<=countAmount;i++)
+	{
+		p[i]=columnsName[i];
+	}
+	
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+
+	if(createTable(tableName,p, columnType, countAmount+1))
+		return -1;
+	return 0;
+}
+//建立数据库或者表
+int createCmd()
+{
+	scaner();
+	if(syn==2)
+	{
+		return createDatabaseCmd();
+	} else if (syn==3)
+	{
+		return createTableCmd();
+	} else 
+		return -1;
+}
+//添加列
+int alterAddCmd(char *tableName)
+{
+	char columnName[NAME_LENGHT];
+	COLUMN_TYPE columnType;
+
+	scaner();
+	if (syn!=40)
+		return -1;
+	strcpy(columnName,word);
+
+	scaner();
+	if(syn>25&&syn<29)  //指定类型26,27,28
+		columnType = syn-26;
+	else if (syn==0) 
+		columnType = NONE;
+	else
+		return -1;
+
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+
+	if (addColumn(tableName,columnName,columnType))
+		return -1;
+	return 0;		
+}
+//删除列
+int alterRmCmd(char *tableName)
+{
+	char columnName[NAME_LENGHT];
+	scaner();
+	if (syn!=7)
+		return -1;
+
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	
+	strcpy(columnName,word);
+
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	if (rmColumn(tableName,columnName))
+		return -1;
+	return 0;
+}
+//修改列类型
+int alterAlterCmd(char *tableName)
+{
+	char columnName[NAME_LENGHT];
+	COLUMN_TYPE columnType;
+	
+	scaner();
+	if (syn!=7)
+		return -1;
+
+	scaner();
+	if (syn!=40)
+		return -1;
+	strcpy(columnName,word);
+	
+	scaner();
+	if(syn>25&&syn<29)  //指定类型26,27,28
+		columnType = syn-26;
+	else if (syn==0) 
+		columnType = NONE;
+	else
+		return -1;
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	if (alterColumn(tableName,columnName,columnType))
+		return -1;
+
+	return 0;	
+
+}
+//修改列
+int alterCmd()
+{
+	char tableName[NAME_LENGHT];
+	scaner();
+	if (syn!=3)
+		return -1;
+
+	scaner();
+	if (syn!=40)
+		return -1;
+	strcpy(tableName,word);
+
+	scaner();
+	if (syn==6)//add
+	{
+		return alterAddCmd(tableName);
+	} else if (syn==9)//drop
+	{
+		return alterRmCmd(tableName);
+	}else if (syn ==4)//alter
+	{
+		return alterAlterCmd(tableName);
+	}else 
+		return -1;
+}
+
+//清除表数据
+int truncateCmd()
+{
+	char tableName[NAME_LENGHT];
+	scaner();
+	if (syn!=3)
+		return -1;
+	
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	strcpy(tableName, word);
+
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	if (truncateTable(tableName))
+		return -1;
+	return 0;
+}
+//指定数据库
+int useCmd()
+{
+	char databaseName[NAME_LENGHT];
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	strcpy(databaseName, word);
+
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	if (use(databaseName))
+		return -1;
+	return 0;
+}
+//删除表或数据库
+int dropCmd()
+{
+	char databaseName[NAME_LENGHT];
+	char tableName[NAME_LENGHT];
+
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	strcpy(databaseName, word);
+
+	scaner();
+	if (syn==0)
+		return drop(databaseName, NULL);
+	if (syn==40)
+		strcpy(tableName, word);
+	else
+		return -1;
+
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	if(drop(databaseName,tableName)) 
+			return -1;
+	return 0;
+}
+//重命名数据库
+int renameDatabaseCmd()
+{//renameDatabase(char *oldName, char *newName);
+	char oldName[NAME_LENGHT];
+	char newName[NAME_LENGHT];
+
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	strcpy(oldName, word);
+
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+
+	strcpy(newName, word);
+	
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	if (renameDatabase(oldName, newName))
+		return -1;
+	return 0;
+}
+//重命名表
+int renameTableCmd()
+{//renameTable(char *oldName, char *newName);
+	char oldName[NAME_LENGHT];
+	char newName[NAME_LENGHT];
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	strcpy(oldName, word);
+	
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	strcpy(newName, word);
+	
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	if (renameTable(oldName, word))
+		return -1;
+	return 0;
+}
+//处理重命名
+int renameCmd()
+{
+	scaner();
+	if (syn==2)//数据库
+	{
+		return renameDatabaseCmd();
+	} else if(syn==3)//表
+	{
+		return renameTableCmd();
+	}
+	else return -1;
+}
+//显示数据库
+int showDatabaseCmd()
+{//showDatabase(SORT_ORDER sortOrder);
+	SORT_ORDER sortOrder;
+
+	scaner();
+	if (syn==0) //NOSORT
+		sortOrder = NOTSORT;
+	else if (syn==14)//SORT
+	{
+		scaner();
+		if (syn!=15)//by
+			return -1;
+		scaner();
+		if (syn==16)
+			sortOrder = DESC;
+		else if (syn==17)
+			sortOrder = INCR;
+		else 
+			return -1;
+	} else
+		return -1;		
+	
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	showDatabase(sortOrder);//no error will appear
+	return 0;
+}
+//显示数据表格
+int showTableCmd(char *databaseName)
+{//showTable(char *databaseName,SORT_ORDER sortOrder);  //databaseName为NULL时指定为当前数据库
+	SORT_ORDER sortOrder;
+
+	scaner();
+	if (syn==0) //NOSORT
+		sortOrder = NOTSORT;
+	else if (syn==14)//SORT
+	{
+		scaner();
+		if (syn!=15)//by
+			return -1;
+		scaner();
+		if (syn==16)
+			sortOrder = DESC;
+		else if (syn==17)
+			sortOrder = INCR;
+		else 
+			return -1;
+	} else
+		return -1;
+
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	showTable(databaseName, sortOrder);//no error whill appear
+	return 0;
+}
+//显示列名
+int showColumnCmd(char *tableName)
+{//showColumn(char *tableName, SORT_ORDER sortOrder);
+	SORT_ORDER sortOrder;
+	
+	scaner();
+	if (syn==0) //NOSORT
+		sortOrder = NOTSORT;
+	else if (syn==14)//SORT
+	{
+		scaner();
+		if (syn!=15)//by
+			return -1;
+		scaner();
+		if (syn==16)
+			sortOrder = DESC;
+		else if (syn==17)
+			sortOrder = INCR;
+		else 
+			return -1;
+	} else
+		return -1;
+	
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	showColumn(tableName, sortOrder);//no error will appear
+	return 0;
+}
+//处理显示
+int showCmd()
+{
+	char databaseName[NAME_LENGHT];
+
+	scaner();
+	if (syn==25)//databases
+		return showDatabaseCmd();
+	else if(syn==3)//table
+		return showTableCmd(NULL);
+	else if(syn==40)//database_name,table_name
+		strcpy(databaseName, word);
+	else
+		return -1;
+
+	scaner();
+	if (syn==3)//table
+		return showTableCmd(databaseName);
+	else if (syn==7)//column
+		return showColumnCmd(databaseName);	
+	else 
+		return -1;
+}
+//删除命令
+int deleteCmd()
+{//delete(char *tableName, char *column, Value value);
+	return 0;
+}
+/* 处理一条命令cmd */
+int processCmd(char *cmd)
+{	
+	int flag;
+	printf("%s\n", cmd);
+	for (p=cmd,flag=0;p!=NULL;)
+	{
+		scaner();
+		if (strlen(word)<1)
+			continue;
+		switch(syn){
+		case 1:   //create
+			flag = createCmd();
+			break;
+		case 4:   //alter
+			flag = alterCmd();
+			break;
+		case 5:  //truncate
+			flag = truncateCmd();
+			break;
+		case 8: //use
+			flag = useCmd();
+			break;
+		case 9: //drop
+			flag = dropCmd();
+			break;
+		case 10://rename
+			flag = renameCmd();
+			break;
+		case 24://show
+			flag = showCmd();
+			break;
+		case 20: //delete
+			flag = deleteCmd();
+			break;
+		default: 
+			break;
+		}
+
+	}
+	return flag;
+}
+/*用来测试的程序*/
+void test()
+{
+	freopen("input.txt", "r", stdin); 
+	freopen("out.txt","w", stdout);
 }
