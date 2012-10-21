@@ -11,12 +11,12 @@ void alterToText(Data *data, COLUMN_TYPE oldColumnType);
 void alterToNone(Data *data, COLUMN_TYPE oldColumnType);
 void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
                             COLUMN_TYPE), COLUMN_TYPE oldColumnType);
-
+void clearTable(Table *table);
 void freeAllColumn(Column *column, int isFreeColumn);
 
 int dropDatabase(char *databaseName);
 int dropOneTable(char *databaseName, char *tableName);
-Database *searchDatabase(char *databaseName);
+Database *searchDatabase(char *databaseName, Database **prior);
 void dropAllTable(Table *tableTraverse);
 void freeTable(Table *table);
 
@@ -27,8 +27,8 @@ Database *currentDatabase = NULL;
 int createDatabase(char *databaseName)
 {
     Database *traverse = head;
-    Database *newDatabase = (Database *)calloc(1, sizeof(Database));
-    strncpy(newDatabase->databaseName, databaseName, LENGTH);
+    Database *newDatabase = calloc(1, sizeof(Database));
+    strncpy(newDatabase->databaseName, databaseName, LENGTH-1);
     newDatabase->next = NULL;
     newDatabase->tableHead = NULL;
 
@@ -50,7 +50,7 @@ int createDatabase(char *databaseName)
     return 0;
 }
 int createTable(char *tableName, char **columnsName,
-                COLUMN_TYPE *columnType, int columnAmount)
+                COLUMN_TYPE *columnsType, int columnAmount)
 {
     if (currentDatabase == NULL)
         return -1;
@@ -81,6 +81,8 @@ int createTable(char *tableName, char **columnsName,
     for (i = 0; i < columnAmount; i++)
     {
         newColumn = (Column *)calloc(1, sizeof(Column));
+        strncpy(newColumn->columnName, columnsName[i], LENGTH-1);
+        newColumn->columnType = columnsType[i];
         if (i == 0)
             newTable->columnHead = newColumn;
         else
@@ -196,7 +198,7 @@ int alterColumn(char *tableName, char *columnName,
         break;
     }
     alterColumnValue(column->columnValueHead, alterData, oldColumnType);
-
+    column->columnType = newColumnType;
     return 0;
 }
 int truncateTable(char *tableName)
@@ -206,22 +208,16 @@ int truncateTable(char *tableName)
         return -1;
 
     //NOTE: 下面的方法使用递归实现，有可能会导致程序运行效率低下
-    freeAllColumn(table->columnHead, 0);
+    clearTable(table);
     return 0;
 }
 int use(char *databaseName)
 {
-    Database *traverse = head;
-    while (traverse != NULL)
-    {
-        if (!strcmp(traverse->databaseName, databaseName))
-        {
-            currentDatabase = traverse;
-            return 0;
-        }
-        traverse = traverse->next;
-    }
-    return -1;
+    Database *database = searchDatabase(databaseName, NULL);
+    if (database == NULL)
+        return -1;
+    currentDatabase = database;
+    return 0;
 }
 int drop(char *databaseName, char *tableName)
 {
@@ -235,9 +231,11 @@ int drop(char *databaseName, char *tableName)
 }
 int renameDatabase(char *oldName, char *newName)
 {
-    Database *database = searchDatabase(oldName);
+    Database *database = searchDatabase(oldName, NULL);
     if (database == NULL)
         return -1;
+    if (searchDatabase(newName, NULL) != NULL)
+        return -1;      //与现有数据库重名
     strncpy(database->databaseName, newName, LENGTH-1);
     return 0;
 }
@@ -246,18 +244,20 @@ int renameTable(char *oldName, char *newName)
     Table *table = searchTable(oldName);
     if (table == NULL)
         return -1;
-
+    if (searchTable(newName) != NULL)
+        return -1;  //与现有表重名
     strncpy(table->tableName, newName, LENGTH-1);
     return 0;
 }
 
 Table *searchTable(char *tableName)
 {
-    //需要确定currentDatabase!=NULL时才能调用此函数
+    if (currentDatabase == NULL)
+        return NULL;
     Table *traverse = currentDatabase->tableHead;
     while (traverse != NULL && strcmp(traverse->tableName,
                                       tableName))
-    traverse = traverse->next;
+        traverse = traverse->next;
     return traverse;
 }
 Column *searchColumn(Table *table, char *columnName, Column **prior)
@@ -266,7 +266,7 @@ Column *searchColumn(Table *table, char *columnName, Column **prior)
         return NULL;
 
     Column *columnTraverse = table->columnHead;
-    Column *priorTra;
+    Column *priorTra = table->columnHead;
     while (columnTraverse != NULL && strcmp(columnTraverse->columnName, columnName))
     {
         priorTra = columnTraverse;
@@ -276,6 +276,28 @@ Column *searchColumn(Table *table, char *columnName, Column **prior)
         *prior = priorTra;
     return columnTraverse;
 }
+void clearTable(Table *table)
+{
+    if (table == NULL)
+        return ;
+    Column *columnTra = table->columnHead;
+    ColumnValue *columnValueTra;
+
+    while (columnTra != NULL)
+    {
+        columnValueTra = columnTra->columnValueHead;
+        while (columnValueTra != NULL)
+        {
+            if (columnTra->columnType == TEXT)
+                strncpy(columnValueTra->data.textValue, "", LENGTH);
+            else
+                memset(&columnValueTra->data, 0, sizeof(Data));
+            columnValueTra = columnValueTra->next;
+        }
+        columnTra = columnTra->next;
+    }
+}
+
 static void freeAllColumnValue(ColumnValue *columnValue, int isTextType)
 {
     if (columnValue == NULL)
@@ -351,9 +373,14 @@ void freeAllColumn(Column *column, int isFreeColumn)
 
  int dropDatabase(char *databaseName)
  {
-    Database *database = searchDatabase(databaseName);
+    Database *prior;
+    Database *database = searchDatabase(databaseName, &prior);
     if (database == NULL)
         return -1;
+    if (prior == head)
+        head = database->next;
+    else
+        prior->next = database->next;
 
     Table *table = database->tableHead;
     dropAllTable(table);
@@ -361,7 +388,7 @@ void freeAllColumn(Column *column, int isFreeColumn)
  }
 int dropOneTable(char *databaseName, char *tableName)
 {
-    Database *database = searchDatabase(databaseName);
+    Database *database = searchDatabase(databaseName, NULL);
     if (database == NULL)
         return -1;
 
@@ -385,18 +412,21 @@ int dropOneTable(char *databaseName, char *tableName)
     freeTable(tableTraverse);
     return 0;
 }
-Database *searchDatabase(char *databaseName)
+Database *searchDatabase(char *databaseName, Database **prior)
 {
+    if (databaseName == NULL)
+        return NULL;
     Database *databaseTra = head;
+    Database *priorTra = head;
     while (databaseTra != NULL)
     {
         if (!strcmp(databaseTra->databaseName, databaseName))
-        {
-            currentDatabase = databaseTra;
-            break;
-        }
+           break;
+        priorTra = databaseTra;
         databaseTra = databaseTra->next;
     }
+    if (prior != NULL)
+        *prior = priorTra;
     return databaseTra;
 }
 //NOTE:这里面有很多层次的递归函数，如果程序效率低下，这些函数
@@ -405,7 +435,7 @@ void dropAllTable(Table *tableTraverse)
 {
     if (tableTraverse == NULL)
         return ;
-    while (tableTraverse != NULL)
+    if (tableTraverse != NULL)
         dropAllTable(tableTraverse->next);
     freeTable(tableTraverse);
 }
