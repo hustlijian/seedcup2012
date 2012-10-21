@@ -8,7 +8,6 @@
 #define NUM_SPACE		3
 #define MAX_WORDLEGTH  1024
 
-/*在返回值为int的函数中，返回-1代表失败，返回0代表成功*/
 int processCmd(char *cmd);
-void test();
+
 #endif //CMDPROCESS_H
