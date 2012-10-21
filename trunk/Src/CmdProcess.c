@@ -5,19 +5,26 @@
 
 char keywords[NUM_KEYWORDS][MAX_KEYWORDS_LENGTH]={
 	"create", "database","table", "alter","truncate","add","column","use",
-		"drop","rename","select","from","where","order","by", "desc", "incr", 
-		"update","set","delete", "insert", "into", "values", "show", 
-		"databases","int","float","text", "none","between","like","and", "or"
+	"drop","rename","select","from","where","order","by", "desc", "incr", 
+	"update","set","delete", "insert", "into", "values", "show", 
+	"databases","int","float","text", "none","between","like","and", "or"
 };
 char operatorwords[NUM_OPERATOR][MAX_OPERATOR] = { 
 	"(", ")","*", "/", "%","+", "-", "==", "~=", ">=", "<=", ">", "<","[",
 		"]",";",",","'","?"
 };
-/*功能：
- *     不区分大小写的字符比较
- * 参数：
- * 
-*/
+
+/*
+ *Parameters:
+ *	@str1:
+ *	@str2:
+ *Return:
+ *	
+ *Description:
+ *	Compare two strings
+ *Date:
+ *	2012-10-21 10:58:18
+ */
 int mystrcmp(const char *str1, const char *str2)
 {
 	int i=0;
@@ -30,36 +37,46 @@ int mystrcmp(const char *str1, const char *str2)
 	return (c1-c2);
 }
 
-/* 功能：
- *		获得string的类型
- * 参数：
- * @str:  没有空格的字符串
- * 返回：
- *		整形，类型码,其中0代表不正确的输入字符
+/*
+ *Parameters:
+ * @str:string without spaces
+ *Return:
+ *	0:incorrect input character
+ *	else:type number
+ *Description:
+ *	Get the type number of the string
+ *Date:
+ *	2012-10-21 10:49:31
  */
 int getTypeNum(char *str)
 {
 	int i, flag;
 	
-	for (i=0, flag=0;str[i]&&(isdigit(str[i])||str[i]=='.');i++)
+	for (i=0, flag=0; str[i] && (isdigit(str[i]) || str[i]=='.'); i++)
 		if (str[i]=='.'){
 			flag++;
 		}
-	if (str[i]=='\0')//数字
+	/* number */
+	if (str[i]=='\0')
 	{
-		if (flag==1) return 42; //浮点数
-		if (flag>1) return 0;//错误输入
-		return 41; //整数
+		/* float */
+		if (flag==1) return 42; 
+		/* wrong */
+		if (flag>1) return 0;
+		/* integer */
+		return 41; 
 	} 
-	if (isalpha(str[0])||str[0]=='_') //标识符
+	/* identifier */
+	if (isalpha(str[0])||str[0]=='_') 
 	{
 		for (i=0;i<NUM_KEYWORDS;i++)
 			if (!mystrcmp(keywords[i], str))
 				break;
-		if (i==NUM_KEYWORDS) return 40;//一般标识符
+		/* normal identifier */
+		if (i==NUM_KEYWORDS) return 40;
 		else return (i+1);
 	}
-	//运算符
+	/* operator */
 	for (i=0;i<NUM_OPERATOR;i++)
 		if (!strcmp(str, operatorwords[i]))
 			break;
@@ -67,15 +84,19 @@ int getTypeNum(char *str)
 	else return 0;
 	return 0;
 }
+
 /*
- * function: scaner the str, and store one words to word
- * parameters:
- *		@str: the input string
- *		@word: store the result word
- *		@sys: the type of the word
- *		@wordLenght: the length of word
- * return:
- *		next position of the string 
+ *Parameters:
+ *	@str: the input string
+ *	@word: store the result word
+ *	@sys: the type of the word
+ *	@wordLenght: the length of word
+ *Return:
+ *	Next position of the string 
+ *Description: 
+ *	Scaner the str, and store one words to word
+ *Date:
+ *	2012-10-21 10:44:58
  */
 char *scaner(char *str, char *word, int *syn)
 {
@@ -132,20 +153,28 @@ char *scaner(char *str, char *word, int *syn)
 	else return NULL;
 }
 
-/* 处理一条命令cmd */
+/*
+ *Parameters:
+ *	@cmd:one command(ended by ';')
+ *Return:
+ *	0:success
+ *	-1:failed
+ *Description:
+ *	Deal with one command.
+ *Date:
+ *	2012-10-21 10:42:04
+ */
 int processCmd(char *cmd)
 {
-	char *p=cmd;
+	char *p = cmd;
 	char word[MAX_WORDLEGTH];
 	int syn;
+
 	do {
 		p = scaner(p, word, &syn);
-		if(word[0]) printf("(%s, %d)\n", word, syn);
-	} while (syn&&(p!=NULL));
-	return 0;
-}
-/*用来测试的程序*/
-void test()
-{
+		if(word[0]) 
+			printf("(%s, %d)\n", word, syn);
+	} while (syn && (p != NULL));
 
+	return 0;
 }
