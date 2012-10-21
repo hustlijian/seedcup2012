@@ -4,6 +4,7 @@
 #include "DatabaseAPI.h"
 
 #define LENGTH 25
+
 typedef union {
         int intValue;
         float floatValue;
@@ -30,6 +31,10 @@ typedef struct database {
     Table *tableHead;
 } Database;
 
+//本来下面3个函数应该拥有相同的形式，但由于整体上没有考虑清楚，导致
+//对函数功能定义不明确，所以就这样了……暂时不改了
 Table *searchTable(char *tableName);
 Column *searchColumn(Table *table, char *columnName, Column **prior);
+Database *searchDatabase(char *databaseName, Database **prior);
+
 #endif // DATABASE_H_INCLUDED
