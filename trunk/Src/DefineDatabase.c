@@ -5,20 +5,19 @@
 static void freeAllColumnValue(ColumnValue *columnValue, int isTextType);
 static int canAlterColumnType(COLUMN_TYPE oldType, COLUMN_TYPE newType);
 
-void alterToInt(Data *data, COLUMN_TYPE oldColumnType);
-void alterToFloat(Data *data, COLUMN_TYPE oldColumnType);
-void alterToText(Data *data, COLUMN_TYPE oldColumnType);
-void alterToNone(Data *data, COLUMN_TYPE oldColumnType);
-void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
+static void alterToInt(Data *data, COLUMN_TYPE oldColumnType);
+static void alterToFloat(Data *data, COLUMN_TYPE oldColumnType);
+static void alterToText(Data *data, COLUMN_TYPE oldColumnType);
+static void alterToNone(Data *data, COLUMN_TYPE oldColumnType);
+static void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
                             COLUMN_TYPE), COLUMN_TYPE oldColumnType);
-void clearTable(Table *table);
-void freeAllColumn(Column *column, int isFreeColumn);
+static void clearTable(Table *table);
+static void freeAllColumn(Column *column, int isFreeColumn);
 
-int dropDatabase(char *databaseName);
-int dropOneTable(char *databaseName, char *tableName);
-Database *searchDatabase(char *databaseName, Database **prior);
-void dropAllTable(Table *tableTraverse);
-void freeTable(Table *table);
+static int dropDatabase(char *databaseName);
+static int dropOneTable(char *databaseName, char *tableName);
+static void dropAllTable(Table *tableTraverse);
+static void freeTable(Table *table);
 
 
 Database *head = NULL;
@@ -291,7 +290,7 @@ Column *searchColumn(Table *table, char *columnName, Column **prior)
         *prior = priorTra;
     return columnTraverse;
 }
-void clearTable(Table *table)
+static void clearTable(Table *table)
 {
     if (table == NULL)
         return ;
@@ -334,15 +333,15 @@ static int canAlterColumnType(COLUMN_TYPE oldType, COLUMN_TYPE newType)
     //会丢失TEXT信息
     return 1;
 }
-void alterToInt(Data *data, COLUMN_TYPE oldColumnType)
+static void alterToInt(Data *data, COLUMN_TYPE oldColumnType)
 {
     data->intValue = (int)data->floatValue;
 }
-void alterToFloat(Data *data, COLUMN_TYPE oldColumnType)
+static void alterToFloat(Data *data, COLUMN_TYPE oldColumnType)
 {
     data->floatValue = (float)data->intValue;
 }
-void alterToText(Data *data, COLUMN_TYPE oldColumnType)
+static void alterToText(Data *data, COLUMN_TYPE oldColumnType)
 {
     data->textValue = (char *)calloc(LENGTH, sizeof(char));
     if (oldColumnType == INT)
@@ -350,12 +349,12 @@ void alterToText(Data *data, COLUMN_TYPE oldColumnType)
     else if (oldColumnType == FLOAT)
         gcvt(data->floatValue, LENGTH-1, data->textValue);
 }
-void alterToNone(Data *data, COLUMN_TYPE oldColumnType)
+static void alterToNone(Data *data, COLUMN_TYPE oldColumnType)
 {
     if (oldColumnType == TEXT)
         free(data->textValue);
 }
-void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
+static void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
                             COLUMN_TYPE), COLUMN_TYPE oldColumnType)
 {
     if (columnValue == NULL)
@@ -373,7 +372,7 @@ void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
 }
 
 
-void freeAllColumn(Column *column, int isFreeColumn)
+static void freeAllColumn(Column *column, int isFreeColumn)
 {
     //isFreeColumn决定是否释放Column本身
     if (column == NULL)
@@ -386,7 +385,7 @@ void freeAllColumn(Column *column, int isFreeColumn)
         free(column);
 }
 
- int dropDatabase(char *databaseName)
+ static int dropDatabase(char *databaseName)
  {
     Database *prior;
     Database *database = searchDatabase(databaseName, &prior);
@@ -401,7 +400,7 @@ void freeAllColumn(Column *column, int isFreeColumn)
     dropAllTable(table);
     return 0;
  }
-int dropOneTable(char *databaseName, char *tableName)
+static int dropOneTable(char *databaseName, char *tableName)
 {
     Database *database = searchDatabase(databaseName, NULL);
     if (database == NULL)
@@ -446,7 +445,7 @@ Database *searchDatabase(char *databaseName, Database **prior)
 }
 //NOTE:这里面有很多层次的递归函数，如果程序效率低下，这些函数
 //就得考虑重写
-void dropAllTable(Table *tableTraverse)
+static void dropAllTable(Table *tableTraverse)
 {
     if (tableTraverse == NULL)
         return ;
@@ -454,7 +453,7 @@ void dropAllTable(Table *tableTraverse)
         dropAllTable(tableTraverse->next);
     freeTable(tableTraverse);
 }
-void freeTable(Table *table)
+static void freeTable(Table *table)
 {
     if (table == NULL)
         return ;

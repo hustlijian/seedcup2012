@@ -36,5 +36,6 @@ typedef struct database {
 Table *searchTable(char *tableName);
 Column *searchColumn(Table *table, char *columnName, Column **prior);
 Database *searchDatabase(char *databaseName, Database **prior);
+int getAllColumn(Table *table, Column **allColumn, int size);
 
 #endif // DATABASE_H_INCLUDED

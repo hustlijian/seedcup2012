@@ -5,13 +5,14 @@
 
 #define SIZE 20
 
-int descOrderCompare(const void *elem1, const void *elem2);
-int incrOrderCompare(const void *elem1, const void *elem2);
-void sortStringArray(char **stringArray, int size,
+static int descOrderCompare(const void *elem1, const void *elem2);
+static int incrOrderCompare(const void *elem1, const void *elem2);
+static void sortStringArray(char **stringArray, int size,
                      SORT_ORDER sortOrder);
-void outputStringArray(char **stringArray, int size);
-void freeStringArray(char **stringArray, int size);
-char *enumToString(COLUMN_TYPE columnType);
+static void outputStringArray(char **stringArray, int size);
+static void freeStringArray(char **stringArray, int size);
+static char *enumToString(COLUMN_TYPE columnType);
+static void outputValue(Data data, COLUMN_TYPE columnType);
 
 extern Database *head;
 extern Database *currentDatabase;
@@ -24,10 +25,8 @@ void showDatabase(SORT_ORDER sortOrder)
     int count = 0;
 
     if (databaseTra == NULL)
-    {
         printf("$\n");   //NO DATA
-        return ;
-    }
+
     while (databaseTra != NULL)
     {
         databasesName[count] = calloc(LENGTH, sizeof(char));
@@ -38,7 +37,7 @@ void showDatabase(SORT_ORDER sortOrder)
     outputStringArray(databasesName, count);
     freeStringArray(databasesName, count);
 }
-void showTable(char *databaseName, SORT_ORDER sortOrder)
+int showTable(char *databaseName, SORT_ORDER sortOrder)
 {
      //databaseName为NULL时指定为当前数据库
     Database *database;
@@ -48,14 +47,16 @@ void showTable(char *databaseName, SORT_ORDER sortOrder)
     else
         database = searchDatabase(databaseName, NULL);
     if (database == NULL)
-    {
-        printf("$\n");
-        return ;
-    }
+        return -1;
 
     char *tablesName[SIZE];
     memset(tablesName, 0, SIZE*sizeof(char *));
     Table *tableTra = database->tableHead;
+    if (tableTra == NULL)
+    {
+        printf("$\n");
+        return 0;
+    }
     int count = 0;
 
     while (tableTra != NULL)
@@ -67,19 +68,22 @@ void showTable(char *databaseName, SORT_ORDER sortOrder)
     sortStringArray(tablesName, count, sortOrder);
     outputStringArray(tablesName, count);
     freeStringArray(tablesName, count);
+    return 0;
 }
-void showColumn(char *tableName, SORT_ORDER sortOrder)
+int showColumn(char *tableName, SORT_ORDER sortOrder)
 {
     Table *table = searchTable(tableName);
     if (table == NULL)
-    {
-        printf("$\n");
-        return ;
-    }
+        return -1;
 
     char *columnsName[SIZE];
     memset(columnsName, 0, SIZE*sizeof(char *));
     Column *columnTra = table->columnHead;
+    if (columnTra == NULL)
+    {
+        printf("$\n");
+        return 0;
+    }
     int count = 0;
 
     while (columnTra != NULL)
@@ -92,24 +96,63 @@ void showColumn(char *tableName, SORT_ORDER sortOrder)
     sortStringArray(columnsName, count, sortOrder);
     outputStringArray(columnsName, count);
     freeStringArray(columnsName, count);
+    return 0;
 }
-void showColumnType(char *tableName)
+int showColumnType(char *tableName)
 {
     Table *table = searchTable(tableName);
     if (table == NULL)
+        return -1;
+
+    Column *columnTra = table->columnHead;
+    if (columnTra == NULL)
     {
         printf("$\n");
-        return ;
+        return 0;
     }
-    Column *columnTra = table->columnHead;
     while (columnTra != NULL)
     {
         printf("%s, ", enumToString(columnTra->columnType));
         columnTra = columnTra->next;
     }
     putchar('\n');
+    return 0;
 }
-void sortStringArray(char **stringArray, int size, SORT_ORDER sortOrder)
+int showAllColumnValue(char *tableName)
+{
+    Table *table = searchTable(tableName);
+    if (table == NULL)
+        return -1;
+
+    Column *allColumn[SIZE];
+    int length = getAllColumn(table, allColumn, SIZE);
+    ColumnValue *columnValueTra[length];
+    int i;
+
+    printf("Begin -- \n");
+
+    if (allColumn[0] == NULL)
+        printf("$\n");
+    else
+    {
+        for (i = 0; i < length; i++)
+            columnValueTra[i] = allColumn[i]->columnValueHead;
+        if (columnValueTra[0] == NULL)
+            printf("$");
+        while (columnValueTra[0] != NULL)
+        {
+            for (i = 0; i < length; i++)
+            {
+                outputValue(columnValueTra[i]->data, allColumn[i]->columnType);
+                columnValueTra[i] = columnValueTra[i]->next;
+            }
+            printf("\n");
+        }
+    }
+    printf("\nEnd -- \n");
+    return 0;
+}
+static void sortStringArray(char **stringArray, int size, SORT_ORDER sortOrder)
 {
     if (sortOrder == NOTSORT)
         return ;
@@ -120,15 +163,15 @@ void sortStringArray(char **stringArray, int size, SORT_ORDER sortOrder)
         compare = incrOrderCompare;
     qsort(stringArray, size, sizeof(char *), compare);
 }
-int descOrderCompare(const void *elem1, const void *elem2)
+static int descOrderCompare(const void *elem1, const void *elem2)
 {
     return -strcmp(*(char **)elem1, *(char **)elem2);
 }
-int incrOrderCompare(const void *elem1, const void *elem2)
+static int incrOrderCompare(const void *elem1, const void *elem2)
 {
     return strcmp(*(char **)elem1, *(char **)elem2);
 }
-void outputStringArray(char **stringArray, int size)
+static void outputStringArray(char **stringArray, int size)
 {
     int i;
     char *searchBlank;
@@ -145,14 +188,14 @@ void outputStringArray(char **stringArray, int size)
     }
     putchar('\n');
 }
-void freeStringArray(char **stringArray, int size)
+static void freeStringArray(char **stringArray, int size)
 {
     int i;
     for (i = 0; i < size; i++)
         free(stringArray[i]);
 }
 
-char *enumToString(COLUMN_TYPE columnType)
+static char *enumToString(COLUMN_TYPE columnType)
 {
     switch (columnType)
     {
@@ -165,5 +208,23 @@ char *enumToString(COLUMN_TYPE columnType)
     default:
         return "NONE";
     }
+}
+static void outputValue(Data data, COLUMN_TYPE columnType)
+{
+    switch (columnType)
+    {
+    case INT:
+        printf("%d,", data.intValue);
+        break;
+    case FLOAT:
+        printf("%f,", data.floatValue);
+        break;
+    case TEXT:
+        printf("%s,", data.textValue);
+        break;
+    case NONE:
+        printf("#,");
+        break;
 
+    }
 }
