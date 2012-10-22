@@ -24,9 +24,9 @@ static int searchPos(int *insertedColumnPos, int key, int size);
 extern Database *head;
 extern Database *currentDatabase;
 
-Value*** select(SelectBody *selectBody, int *rowAmount)
+int select(SelectBody *selectBody, int *rowAmount)
 {
-    return NULL;
+    return 0;
 }
 int update(UpdateBody *updateBody)
 {
@@ -184,7 +184,8 @@ static int updateData(ColumnValue **columnsValue, COLUMN_TYPE *columnType, Value
     int i;
     for (i = 0; i < size; i++)
     {
-        if (columnType[i] != newValues[i].columnType) //如果类型不匹配
+        if (newValues[i].columnType != EMPTY
+            && columnType[i] != newValues[i].columnType) //如果类型不匹配
             return -1;
         assignData(columnsValue[i], newValues[i]);
     }
@@ -196,16 +197,20 @@ static void assignData(ColumnValue *columnValue, Value newValue)
     {
     case INT:
         columnValue->data.intValue = newValue.columnValue.intValue;
+        columnValue->hasData = 1;
         break;
     case FLOAT:
         columnValue->data.floatValue = newValue.columnValue.floatValue;
+        columnValue->hasData = 1;
         break;
     case TEXT:
         if (columnValue->data.textValue == NULL)
             columnValue->data.textValue = calloc(LENGTH, sizeof(char));
         strncpy(columnValue->data.textValue, newValue.columnValue.textValue, LENGTH);
+        columnValue->hasData = 1;
         break;
     default:
+        columnValue->hasData = 0;
         break;
     }
 }
@@ -322,7 +327,8 @@ static int sameType(Column **columns, int *insertedColumnPos, Value *values, int
     int i;
     for (i = 0; i < size; i++)
     {
-        if (columns[insertedColumnPos[i]]->columnType != values[i].columnType)
+        if (values [i].columnType != EMPTY &&
+            columns[insertedColumnPos[i]]->columnType != values[i].columnType)
             return 0;
     }
     return 1;

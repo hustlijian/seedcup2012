@@ -10,13 +10,13 @@ static void alterToFloat(Data *data, COLUMN_TYPE oldColumnType);
 static void alterToText(Data *data, COLUMN_TYPE oldColumnType);
 static void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
                             COLUMN_TYPE), COLUMN_TYPE oldColumnType);
-static void clearTable(Table *table);
+//static void clearTable(Table *table);
 static void freeAllColumn(Column *column, int isFreeColumn);
 
 static int dropDatabase(char *databaseName);
 static int dropOneTable(char *databaseName, char *tableName);
 static void dropAllTable(Table *tableTraverse);
-static void freeTable(Table *table);
+static void freeTable(Table *table, int isFreeTable);
 
 
 Database *head = NULL;
@@ -220,7 +220,7 @@ int truncateTable(char *tableName)
         return -1;
 
     //NOTE: 下面的方法使用递归实现，有可能会导致程序运行效率低下
-    clearTable(table);
+    freeTable(table, 0);
     return 0;
 }
 int use(char *databaseName)
@@ -288,7 +288,7 @@ Column *searchColumn(Table *table, char *columnName, Column **prior)
         *prior = priorTra;
     return columnTraverse;
 }
-static void clearTable(Table *table)
+/*static void clearTable(Table *table)
 {
     if (table == NULL)
         return ;
@@ -308,14 +308,18 @@ static void clearTable(Table *table)
         }
         columnTra = columnTra->next;
     }
-}
+}*/
 
 static void freeAllColumnValue(ColumnValue *columnValue, int isTextType)
 {
     if (columnValue == NULL)
         return;
-    while (columnValue->next != NULL)
+    if (columnValue->next != NULL)
+    {
         freeAllColumnValue(columnValue->next, isTextType);
+        columnValue->next = NULL;
+    }
+
     if (isTextType)
         free(columnValue->data.textValue);
     free(columnValue);
@@ -371,9 +375,13 @@ static void freeAllColumn(Column *column, int isFreeColumn)
     if (column == NULL)
         return ;
     if (column->next != NULL)
+    {
         freeAllColumn(column->next, isFreeColumn);
+        column->next == NULL;
+    }
 
     freeAllColumnValue(column->columnValueHead, column->columnType==TEXT);
+    column->columnValueHead = NULL;
     if (isFreeColumn)
         free(column);
 }
@@ -389,8 +397,8 @@ static void freeAllColumn(Column *column, int isFreeColumn)
     else
         prior->next = database->next;
 
-    Table *table = database->tableHead;
-    dropAllTable(table);
+    Table *tableTra = database->tableHead;
+    dropAllTable(tableTra);
     return 0;
  }
 static int dropOneTable(char *databaseName, char *tableName)
@@ -416,7 +424,7 @@ static int dropOneTable(char *databaseName, char *tableName)
         database->tableHead = tableTraverse->next;
     else
         prior->next = tableTraverse->next;
-    freeTable(tableTraverse);
+    freeTable(tableTraverse, 1);
     return 0;
 }
 Database *searchDatabase(char *databaseName, Database **prior)
@@ -442,15 +450,15 @@ static void dropAllTable(Table *tableTraverse)
 {
     if (tableTraverse == NULL)
         return ;
-    if (tableTraverse != NULL)
-        dropAllTable(tableTraverse->next);
-    freeTable(tableTraverse);
+    dropAllTable(tableTraverse->next);
+    freeTable(tableTraverse, 1);
 }
-static void freeTable(Table *table)
+static void freeTable(Table *table, int isFreeTable)
 {
     if (table == NULL)
         return ;
-
     Column *columnTra = table->columnHead;
-    freeAllColumn(columnTra, 1);
+    freeAllColumn(columnTra, isFreeTable);
+    if (isFreeTable)
+        free(table);
 }

@@ -12,6 +12,7 @@ typedef union {
 } Data;
 typedef struct columnValue {
     Data data;
+    int hasData;
     struct columnValue *next;
 } ColumnValue;
 typedef struct column {

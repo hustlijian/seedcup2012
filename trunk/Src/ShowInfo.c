@@ -12,12 +12,12 @@ static void sortStringArray(char **stringArray, int size,
 static void outputStringArray(char **stringArray, int size);
 static void freeStringArray(char **stringArray, int size);
 static char *enumToString(COLUMN_TYPE columnType);
-static void outputValue(Data data, COLUMN_TYPE columnType);
+static void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType);
 
 extern Database *head;
 extern Database *currentDatabase;
 
-void showDatabase(SORT_ORDER sortOrder)
+int showDatabase(SORT_ORDER sortOrder)
 {
     char *databasesName[SIZE];
     memset(databasesName, 0, SIZE*sizeof(char *));
@@ -25,7 +25,10 @@ void showDatabase(SORT_ORDER sortOrder)
     int count = 0;
 
     if (databaseTra == NULL)
+    {
         printf("$\n");   //NO DATA
+        return 0;
+    }
 
     while (databaseTra != NULL)
     {
@@ -36,6 +39,7 @@ void showDatabase(SORT_ORDER sortOrder)
     sortStringArray(databasesName, count, sortOrder);
     outputStringArray(databasesName, count);
     freeStringArray(databasesName, count);
+    return 0;
 }
 int showTable(char *databaseName, SORT_ORDER sortOrder)
 {
@@ -145,7 +149,7 @@ int showAllColumnValue(char *tableName)
         {
             for (i = 0; i < length; i++)
             {
-                outputValue(columnValueTra[i]->data, allColumn[i]->columnType);
+                outputValue(columnValueTra[i], allColumn[i]->columnType);
                 columnValueTra[i] = columnValueTra[i]->next;
             }
             printf("\n");
@@ -211,21 +215,30 @@ static char *enumToString(COLUMN_TYPE columnType)
         return "NONE";
     }
 }
-static void outputValue(Data data, COLUMN_TYPE columnType)
+static void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType)
 {
-    switch (columnType)
+    Data data = columnValue->data;
+    if (columnValue->hasData)
     {
-    case INT:
-        printf("%d,", data.intValue);
-        break;
-    case FLOAT:
-        printf("%f,", data.floatValue);
-        break;
-    case TEXT:
-        printf("%s,", data.textValue);
-        break;
-    case NONE:
+        switch (columnType)
+        {
+        case INT:
+            printf("%d,", data.intValue);
+            break;
+        case FLOAT:
+            printf("%f,", data.floatValue);
+            break;
+        case TEXT:
+            printf("%s,", data.textValue);
+            break;
+        case NONE:
+            printf("#,");
+            break;
+        default:
+            break;
+        }
+    } else {
         printf("#,");
-        break;
     }
+
 }
