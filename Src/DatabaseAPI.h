@@ -51,7 +51,7 @@ int renameTable(char *oldName, char *newName);
 
 //select函数接口可能需要重写，由于Select可能产生多行数据，每行数据即是一个Value*数组，
 //所以我考虑返回Value*型的二维数组，其中rowAmount指针指向的值记录了行数
-Value*** select(SelectBody *selectBody, int *rowAmount);
+int select(SelectBody *selectBody, int *rowAmount);
 int update(UpdateBody *updateBOdy);
 //int delete(char *tableName, Condition *condition);
 int delete(char *tableName, char *column, Value value);

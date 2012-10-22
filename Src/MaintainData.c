@@ -315,8 +315,6 @@ static int insertColumnsValue(Column **columns, int columnSize, int *insertedCol
         for (i = 0; i < columnSize; i++)
             columnsValueTra[i]->next = newColumnsValue[i];
     }
-
-
     return 0;
 }
 static int sameType(Column **columns, int *insertedColumnPos, Value *values, int size)
@@ -336,5 +334,4 @@ static int searchPos(int *insertedColumnPos, int key, int size)
         if (key == insertedColumnPos[i])
             return 1;
     return 0;
-
 }

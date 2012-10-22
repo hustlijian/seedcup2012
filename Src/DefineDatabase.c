@@ -8,7 +8,6 @@ static int canAlterColumnType(COLUMN_TYPE oldType, COLUMN_TYPE newType);
 static void alterToInt(Data *data, COLUMN_TYPE oldColumnType);
 static void alterToFloat(Data *data, COLUMN_TYPE oldColumnType);
 static void alterToText(Data *data, COLUMN_TYPE oldColumnType);
-static void alterToNone(Data *data, COLUMN_TYPE oldColumnType);
 static void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
                             COLUMN_TYPE), COLUMN_TYPE oldColumnType);
 static void clearTable(Table *table);
@@ -208,7 +207,6 @@ int alterColumn(char *tableName, char *columnName,
         alterData = alterToText;
         break;
     default:  //NONE
-        alterData = alterToNone;
         break;
     }
     alterColumnValue(column->columnValueHead, alterData, oldColumnType);
@@ -326,7 +324,7 @@ static void freeAllColumnValue(ColumnValue *columnValue, int isTextType)
 static int canAlterColumnType(COLUMN_TYPE oldType, COLUMN_TYPE newType)
 {
     //先前是否判断了oldType跟newType是否相等？
-    if (oldType == newType || oldType == TEXT)   //TEXT类型不能转换成其它类型
+    if (oldType == newType || oldType == TEXT || newType == NONE)   //TEXT类型不能转换成其它类型
         return 0;
 
     //INT跟FLOAT可以互相转换，此外,NONE可以跟任何类型相互转换，但TEXT转换NONE时
@@ -348,11 +346,6 @@ static void alterToText(Data *data, COLUMN_TYPE oldColumnType)
         itoa(data->intValue, data->textValue, 10);
     else if (oldColumnType == FLOAT)
         gcvt(data->floatValue, LENGTH-1, data->textValue);
-}
-static void alterToNone(Data *data, COLUMN_TYPE oldColumnType)
-{
-    if (oldColumnType == TEXT)
-        free(data->textValue);
 }
 static void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
                             COLUMN_TYPE), COLUMN_TYPE oldColumnType)

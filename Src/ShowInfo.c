@@ -126,6 +126,8 @@ int showAllColumnValue(char *tableName)
 
     Column *allColumn[SIZE];
     int length = getAllColumn(table, allColumn, SIZE);
+    if (length <= 0)
+        return -1;
     ColumnValue *columnValueTra[length];
     int i;
 
@@ -225,6 +227,5 @@ static void outputValue(Data data, COLUMN_TYPE columnType)
     case NONE:
         printf("#,");
         break;
-
     }
 }
