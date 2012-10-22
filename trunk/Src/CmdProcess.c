@@ -456,7 +456,7 @@ int renameTableCmd()
 	scaner();
 	if (syn)//È·ÈÏÃüÁî½áÊø
 		return -1;
-	if (renameTable(oldName, word))
+	if (renameTable(oldName, newName))
 		return -1;
 	return 0;
 }
