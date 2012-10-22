@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
 #include "CmdProcess.h"
@@ -200,6 +201,8 @@ int createTableCmd()
 	{
 		scaner();
 		if(syn!=40||isKeywords(word)) 
+			return -1;
+		if (!checkDatabaseName(word)) //检查数据名，英文字符，下划线
 			return -1;
 		strcpy(columnsName[countAmount],word);
 
@@ -470,14 +473,12 @@ int renameCmd()
 	}
 	else return -1;
 }
-//显示数据库
-int showDatabaseCmd()
-{//showDatabase(SORT_ORDER sortOrder);
-	SORT_ORDER sortOrder;
 
+int  checkSort(SORT_ORDER *sortOrder)
+{
 	scaner();
 	if (syn==0) //NOSORT
-		sortOrder = NOTSORT;
+		*sortOrder = NOTSORT;
 	else if (syn==14)//SORT
 	{
 		scaner();
@@ -485,18 +486,28 @@ int showDatabaseCmd()
 			return -1;
 		scaner();
 		if (syn==16)
-			sortOrder = DESC;
+			*sortOrder = DESC;
 		else if (syn==17)
-			sortOrder = INCR;
+			*sortOrder = INCR;
 		else 
 			return -1;
 	} else
+		return -1;
+	return 0;
+}
+//显示数据库
+int showDatabaseCmd()
+{//showDatabase(SORT_ORDER sortOrder);
+	SORT_ORDER sortOrder;
+
+	if (checkSort(&sortOrder))
 		return -1;		
 	
 	scaner();
 	if (syn)//确认命令结束
 		return -1;
-	showDatabase(sortOrder);//no error will appear
+	if(showDatabase(sortOrder))
+		return -1;
 	return 0;
 }
 //显示数据表格
@@ -504,28 +515,14 @@ int showTableCmd(char *databaseName)
 {//showTable(char *databaseName,SORT_ORDER sortOrder);  //databaseName为NULL时指定为当前数据库
 	SORT_ORDER sortOrder;
 
-	scaner();
-	if (syn==0) //NOSORT
-		sortOrder = NOTSORT;
-	else if (syn==14)//SORT
-	{
-		scaner();
-		if (syn!=15)//by
-			return -1;
-		scaner();
-		if (syn==16)
-			sortOrder = DESC;
-		else if (syn==17)
-			sortOrder = INCR;
-		else 
-			return -1;
-	} else
+	if (checkSort(&sortOrder))
 		return -1;
 
 	scaner();
 	if (syn)//确认命令结束
 		return -1;
-	showTable(databaseName, sortOrder);//no error whill appear
+	if(showTable(databaseName, sortOrder))
+		return -1;
 	return 0;
 }
 //显示列名
@@ -533,28 +530,14 @@ int showColumnCmd(char *tableName)
 {//showColumn(char *tableName, SORT_ORDER sortOrder);
 	SORT_ORDER sortOrder;
 	
-	scaner();
-	if (syn==0) //NOSORT
-		sortOrder = NOTSORT;
-	else if (syn==14)//SORT
-	{
-		scaner();
-		if (syn!=15)//by
-			return -1;
-		scaner();
-		if (syn==16)
-			sortOrder = DESC;
-		else if (syn==17)
-			sortOrder = INCR;
-		else 
-			return -1;
-	} else
+	if (checkSort(&sortOrder))
 		return -1;
 	
 	scaner();
 	if (syn)//确认命令结束
 		return -1;
-	showColumn(tableName, sortOrder);//no error will appear
+	if(showColumn(tableName, sortOrder))
+		return -1;
 	return 0;
 }
 //处理显示
@@ -580,9 +563,279 @@ int showCmd()
 	else 
 		return -1;
 }
+//为value赋值
+int getValue(Value *value)
+{
+	char *str;
+	int i;
+
+	scaner();
+	if (syn==67)//',类型是字符串
+	{
+		value->columnType = TEXT;
+		str = (char *)malloc(sizeof(char)*NAME_LENGHT);
+		if (str==NULL)
+			return -1;
+		i=0; 
+		do {
+			str[i]=p[i];
+			if(!isalnum(str[i]) && str[i]!=' ' && str[i] != '_' && str[i]!='\'')
+			{	//必须是字符数字，或者空格，下划线,单引号 
+				return -1;
+			}
+			i++;
+		}while(p[i-1]&&str[i-1]!='\'');
+		if (p[i-1] == '\0')
+			return -1;
+		str[i-1] = '\0';
+		p = p + i;
+
+		value->columnValue.textValue = str;
+		return 0;
+
+	} else if (syn==41)//整数
+	{
+		value->columnType = INT;
+		value->columnValue.intValue = atoi(word);
+		return 0;
+	}else if (syn==42)//浮点数
+	{
+		value->columnType = FLOAT;
+		value->columnValue.floatValue = (float)atof(word);
+		return 0;
+	} else if (syn==66)//,.空类型
+	{
+		value->columnType = EMPTY;
+		return 0;
+	} else
+		return -1;
+} 
 //删除命令
 int deleteCmd()
 {//delete(char *tableName, char *column, Value value);
+	char tableName[NAME_LENGHT];
+	char colum[NAME_LENGHT];
+	Value value;
+
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	strcpy(tableName, word);
+
+	scaner();
+	if (syn!=13)//where
+		return -1;
+
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	strcpy(colum, word);
+
+	scaner();
+	if (syn!=57)//==
+		return -1;
+
+	if (getValue(&value))
+		return -1;
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+	if (delete(tableName, colum, value))
+		return -1;
+	if (value.columnType==TEXT)
+		free(value.columnValue.textValue);
+
+	return 0;
+}
+//处理update命令
+int updateCmd()
+{//int update(UpdateBody *updateBOdy);
+	UpdateBody updateBody;
+	char tableName[NAME_LENGHT];
+	char columnsName[COL_NUM][NAME_LENGHT];
+	char *columns[COL_NUM];
+	Value newValues[COL_NUM];
+	int columnAmount;
+	char updatedColumn[NAME_LENGHT];
+	Value oldValue;
+	COLUMN_TYPE columnType;
+	int i;
+
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	strcpy(tableName, word);
+
+	scaner();
+	if (syn!=19)//set
+		return -1;
+	scaner();
+	if (syn!=50)//(
+		return -1;
+	
+	scaner();
+	if (syn!=40) //columnsNames
+		return -1;
+	strcpy(columnsName[0], word);
+	for (scaner(),columnAmount = 0;syn==66;scaner()) //一直到:)
+	{		
+		scaner();
+		if (syn!=40||isKeywords(word))
+			return -1;
+		strcpy(columnsName[++columnAmount],word);
+	}
+	if (syn!=51)//)
+		return -1;
+
+	scaner();
+	if (syn!=69)//=
+		return -1;
+	scaner();
+	if (syn!=50)//(
+		return -1;
+	if (getValue(&newValues[0]))
+		return -1;
+	for (i=0,scaner();syn==66;scaner())
+	{
+		scaner();
+		if (getValue(&newValues[++i]))
+			return -1;
+	}
+	if (i!=columnAmount)//columns == values
+		return -1;
+	if (syn!=51)//)
+		return -1;
+	scaner();
+	if (syn!=13)//where
+		return -1;
+
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	strcpy(updatedColumn, word);
+
+	scaner();
+	if (syn!=57)//==
+		return -1;
+	if (getValue(&oldValue))
+		return -1;
+	
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+
+	for (i=0; i<=columnAmount; i++)
+		columns[i] = columnsName[i];
+	
+	updateBody.tableName = tableName;
+	updateBody.columnsName = columns;
+	updateBody.newValues = newValues;
+	updateBody.columnAmount = columnAmount+1;
+	updateBody.updatedColumn = updatedColumn;
+	columnType=updateBody.oldValue.columnType = oldValue.columnType;
+	switch(columnType)
+	{
+	case INT:
+		updateBody.oldValue.columnValue.intValue = oldValue.columnValue.intValue;
+		break;
+	case FLOAT:
+		updateBody.oldValue.columnValue.floatValue = oldValue.columnValue.floatValue;
+		break;
+	case TEXT:
+		updateBody.oldValue.columnValue.textValue = oldValue.columnValue.textValue;
+		break;
+	default: break;
+	}
+	if (update(&updateBody))
+		return -1;
+	if (columnType == TEXT)
+		free(oldValue.columnValue.textValue);
+
+	return 0;
+}
+//处理insert命令
+int insertCmd()
+{//int insert(char *tableName, char **columnsName, Value *values, int amount);
+	char tableName[NAME_LENGHT];
+	char columnsName[COL_NUM][NAME_LENGHT];
+	char *columns[COL_NUM];
+	Value values[COL_NUM];
+	int amount, i;
+	int colFlag=0;
+
+	scaner();
+	if (syn!=22)//into
+		return -1;
+	scaner();
+	if (syn!=40||isKeywords(word))
+		return -1;
+	strcpy(tableName, word);
+
+	scaner();
+	if (syn==23)//values
+	{
+		colFlag = 1;
+	} else if (syn==50)//(
+	{
+		scaner();
+		if (syn!=40) //columnsNames
+			return -1;
+		strcpy(columnsName[0], word);
+		for (scaner(),amount = 0;syn==66;scaner()) //,.一直到:)
+		{		
+			scaner();
+			if (syn!=40||isKeywords(word))
+				return -1;
+			strcpy(columnsName[++amount],word);
+		}
+		if (syn!=51)//)
+			return -1;
+		scaner();
+		if (syn!=23)//values
+			return -1;
+	} else
+		return -1;
+	
+	scaner();
+	if (syn!=50)//(
+		return -1;
+	for (i=0;1;i++)
+	{
+		if (getValue(&values[i]))
+			return -1;
+		if (values[i].columnType==EMPTY)
+			continue;
+		scaner();
+		if (syn == 51)//)
+			break;
+		if (syn != 66)//,
+			return -1;
+	}
+	if (i!=amount)//columns == values
+		return -1;
+	if (syn!=51)//)
+		return -1;
+
+	scaner();
+	if (syn)//确认命令结束
+		return -1;
+
+	if (colFlag)//all the columns
+	{
+		if (insert(tableName,NULL,values, amount+1))
+			return -1;
+	}else{
+		for (i=0;i<=amount;i++)
+			columns[i] = columnsName[i];
+		if (insert(tableName,columns,values, amount+1))
+			return -1;
+	}
+	return 0;
+}
+
+//处理select命令
+int selectCmd()
+{
 	return 0;
 }
 /* 处理一条命令cmd */
@@ -619,6 +872,15 @@ int processCmd(char *cmd)
 			break;
 		case 20: //delete
 			flag = deleteCmd();
+			break;
+		case 18: //update
+			flag = updateCmd();
+			break;
+		case 21: //insert
+			flag = insertCmd();
+			break;
+		case 11: //select
+			flag = selectCmd();
 			break;
 		default: 
 			break;
