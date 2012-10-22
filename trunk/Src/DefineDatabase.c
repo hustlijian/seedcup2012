@@ -45,6 +45,11 @@ int createDatabase(char *databaseName)
             }
             traverse = traverse->next;
         }
+        if (!strcmp(databaseName, traverse->databaseName))
+        {
+            free(newDatabase);
+            return -1;
+        }
         traverse->next = newDatabase;
     }
     return 0;
@@ -67,10 +72,15 @@ int createTable(char *tableName, char **columnsName,
         {
             if (!strcmp(tableName, traverse->tableName))
             {
-                free(newTable);
+
                 return -1;
             }
             traverse = traverse->next;
+        }
+        if (!strcmp(tableName, traverse->tableName))
+        {
+            free(newTable);
+            return -1;
         }
         traverse->next = newTable;
     }
@@ -120,6 +130,11 @@ int addColumn(char *tableName, char *columnName,
                 return -1;
             }
             columnTraverse = columnTraverse->next;
+        }
+        if (!strcmp(columnName, columnTraverse->columnName))
+        {
+            free(newColumn);
+            return -1;
         }
         columnTraverse->next = newColumn;
     }
