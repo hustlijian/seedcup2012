@@ -1,7 +1,7 @@
 #ifndef DATABASEAPI_H_INCLUDED
 #define DATABASEAPI_H_INCLUDED
 
-typedef enum {INT, FLOAT, TEXT, NONE} COLUMN_TYPE;
+typedef enum {INT, FLOAT, TEXT, NONE, EMPTY} COLUMN_TYPE;
 typedef enum {EQ, NE, GT, LT, GET, LET, BETWEEN, LIKE} OPERATOR;
 typedef enum {NOTSORT, DESC, INCR} SORT_ORDER;
 
@@ -57,10 +57,9 @@ int update(UpdateBody *updateBOdy);
 int delete(char *tableName, char *column, Value value);
 int insert(char *tableName, char **columnsName, Value *values, int amount);
 
-void showDatabase(SORT_ORDER sortOrder);
+int showDatabase(SORT_ORDER sortOrder);
 int showTable(char *databaseName,SORT_ORDER sortOrder);  //databaseName为NULL时指定为当前数据库
 int showColumn(char *tableName, SORT_ORDER sortOrder);
-int showColumnType(char *tableName);
-int showAllColumnValue(char *tableName);
+int showColumnValue(char *tableName);
 
 #endif // DATABASEAPI_H_INCLUDED
