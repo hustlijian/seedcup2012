@@ -3,24 +3,21 @@
 #include "Database.h"
 #include "DatabaseAPI.h"
 
-int getColumnsValue(Table *table, char **columnsName, ColumnValue **columnValue,
+static int getColumnsValue(Table *table, char **columnsName, ColumnValue **columnValue,
                     COLUMN_TYPE *columnType, int size);
-int updateData(ColumnValue **columnsValue, COLUMN_TYPE *columnType, Value *newValues,
+static int updateData(ColumnValue **columnsValue, COLUMN_TYPE *columnType, Value *newValues,
               int size);
-int isSameValue(ColumnValue *columnValue, Value oldValue);
-void assignData(ColumnValue *columnValue, Value newValue);
-
-int getAllColumn(Table *table, Column **allColumn, int size);
-void initCurrent(Column **allColumn, ColumnValue **current, int size);
-void deleteFirstNode(Column **allColumn, int size);
-void deleteNode(ColumnValue **current, ColumnValue **prior, int size);
-void moveAllColumnPointer(ColumnValue **current, ColumnValue **prior, int size);
-
-int getInsertedColumnPos(Table *table, int *position, char **columnsName, int size);
-int insertColumnsValue(Column **columns, int columnSize, int *insertedColumnPos, Value *values,
+static int isSameValue(ColumnValue *columnValue, Value oldValue);
+static void assignData(ColumnValue *columnValue, Value newValue);
+static void initCurrent(Column **allColumn, ColumnValue **current, int size);
+static void deleteFirstNode(Column **allColumn, int size);
+static void deleteNode(ColumnValue **current, ColumnValue **prior, int size);
+static void moveAllColumnPointer(ColumnValue **current, ColumnValue **prior, int size);
+static int getInsertedColumnPos(Table *table, int *position, char **columnsName, int size);
+static int insertColumnsValue(Column **columns, int columnSize, int *insertedColumnPos, Value *values,
                        int valueSize);
-int sameType(Column **columns, int *insertedColumnPos, Value *values, int size);
-int searchPos(int *insertedColumnPos, int key, int size);
+static int sameType(Column **columns, int *insertedColumnPos, Value *values, int size);
+static int searchPos(int *insertedColumnPos, int key, int size);
 
 #define SIZE 20
 
@@ -130,7 +127,7 @@ int insert(char *tableName, char **columnsName, Value *values, int amount)
     result = insertColumnsValue(allColumn, size, insertedColumnPos, values, amount);
     return result;
 }
-int getColumnsValue(Table *table, char **columnsName, ColumnValue **columnValue,
+static int getColumnsValue(Table *table, char **columnsName, ColumnValue **columnValue,
                     COLUMN_TYPE *columnType, int size)
 {
     if (table == NULL)
@@ -158,7 +155,7 @@ int getColumnsValue(Table *table, char **columnsName, ColumnValue **columnValue,
     }
     return 0;
 }
-int isSameValue(ColumnValue *columnValue, Value oldValue)
+static int isSameValue(ColumnValue *columnValue, Value oldValue)
 {
     int result = 0;
     switch (oldValue.columnType)
@@ -181,7 +178,7 @@ int isSameValue(ColumnValue *columnValue, Value oldValue)
     }
     return result;
 }
-int updateData(ColumnValue **columnsValue, COLUMN_TYPE *columnType, Value *newValues,
+static int updateData(ColumnValue **columnsValue, COLUMN_TYPE *columnType, Value *newValues,
               int size)
 {
     int i;
@@ -193,7 +190,7 @@ int updateData(ColumnValue **columnsValue, COLUMN_TYPE *columnType, Value *newVa
     }
     return 0;
 }
-void assignData(ColumnValue *columnValue, Value newValue)
+static void assignData(ColumnValue *columnValue, Value newValue)
 {
     switch (newValue.columnType)
     {
@@ -228,13 +225,13 @@ int getAllColumn(Table *table, Column **allColumn, int maxSize)
     return count;
 }
 
-void initCurrent(Column **allColumn, ColumnValue **current, int size)
+static void initCurrent(Column **allColumn, ColumnValue **current, int size)
 {
     int i;
     for (i = 0; i < size; i++)
             current[i] = allColumn[i]->columnValueHead;
 }
-void deleteFirstNode(Column **allColumn, int size)
+static void deleteFirstNode(Column **allColumn, int size)
 {
     int i;
     ColumnValue *column;
@@ -245,13 +242,13 @@ void deleteFirstNode(Column **allColumn, int size)
     }
 
 }
-void deleteNode(ColumnValue **current, ColumnValue **prior, int size)
+static void deleteNode(ColumnValue **current, ColumnValue **prior, int size)
 {
     int i;
     for (i = 0; i < size; i++)
         prior[i]->next = current[i]->next;
 }
-void moveAllColumnPointer(ColumnValue **current, ColumnValue **prior, int size)
+static void moveAllColumnPointer(ColumnValue **current, ColumnValue **prior, int size)
 {
     int i;
     for (i = 0; i < size; i++)
@@ -260,7 +257,7 @@ void moveAllColumnPointer(ColumnValue **current, ColumnValue **prior, int size)
         current[i] = current[i]->next;
     }
 }
-int getInsertedColumnPos(Table *table, int *position, char **columnsName, int size)
+static int getInsertedColumnPos(Table *table, int *position, char **columnsName, int size)
 {
     if (table == NULL)
         return -1;
@@ -287,7 +284,7 @@ int getInsertedColumnPos(Table *table, int *position, char **columnsName, int si
     }
     return 0;
 }
-int insertColumnsValue(Column **columns, int columnSize, int *insertedColumnPos, Value *values,
+static int insertColumnsValue(Column **columns, int columnSize, int *insertedColumnPos, Value *values,
                        int valueSize)
 {
     int isSameType = sameType(columns, insertedColumnPos, values, valueSize);
@@ -322,7 +319,7 @@ int insertColumnsValue(Column **columns, int columnSize, int *insertedColumnPos,
 
     return 0;
 }
-int sameType(Column **columns, int *insertedColumnPos, Value *values, int size)
+static int sameType(Column **columns, int *insertedColumnPos, Value *values, int size)
 {
     int i;
     for (i = 0; i < size; i++)
@@ -332,7 +329,7 @@ int sameType(Column **columns, int *insertedColumnPos, Value *values, int size)
     }
     return 1;
 }
-int searchPos(int *insertedColumnPos, int key, int size)
+static int searchPos(int *insertedColumnPos, int key, int size)
 {
     int i;
     for (i = 0; i < size; i++)
