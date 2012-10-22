@@ -195,7 +195,13 @@ int createTableCmd()
 	strcpy(tableName,word);
 
 	scaner();
-	if(syn!=50)
+	if (syn == 0)//нчап╠М
+	{
+		if(createTable(tableName,NULL, NULL, 0))
+			return -1;
+		return 0;
+	}
+	if(syn!=50)//(
 		return -1;
 	for (countAmount=0;countAmount<COL_NUM;countAmount++)
 	{
