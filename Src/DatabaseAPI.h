@@ -58,8 +58,9 @@ int delete(char *tableName, char *column, Value value);
 int insert(char *tableName, char **columnsName, Value *values, int amount);
 
 void showDatabase(SORT_ORDER sortOrder);
-void showTable(char *databaseName,SORT_ORDER sortOrder);  //databaseName为NULL时指定为当前数据库
-void showColumn(char *tableName, SORT_ORDER sortOrder);
-void showColumnValue(char *tableName);
+int showTable(char *databaseName,SORT_ORDER sortOrder);  //databaseName为NULL时指定为当前数据库
+int showColumn(char *tableName, SORT_ORDER sortOrder);
+int showColumnType(char *tableName);
+int showAllColumnValue(char *tableName);
 
 #endif // DATABASEAPI_H_INCLUDED
