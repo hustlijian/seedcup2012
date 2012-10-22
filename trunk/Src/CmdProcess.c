@@ -674,41 +674,55 @@ int updateCmd()
 	if (syn!=19)//set
 		return -1;
 	scaner();
-	if (syn!=50)//(
-		return -1;
-	
-	scaner();
-	if (syn!=40) //columnsNames
-		return -1;
-	strcpy(columnsName[0], word);
-	for (scaner(),columnAmount = 0;syn==66;scaner()) //一直到:)
-	{		
-		scaner();
-		if (syn!=40||isKeywords(word))
+	if (syn==40)
+	{
+		strcpy(columnsName[0], word);
+		columnAmount = 0;
+	}else 
+	{	
+		if (syn!=50)//(
 			return -1;
-		strcpy(columnsName[++columnAmount],word);
+		
+		scaner();
+		if (syn!=40) //columnsNames
+			return -1;
+		strcpy(columnsName[0], word);
+		for (scaner(),columnAmount = 0;syn==66;scaner()) //一直到:)
+		{		
+			scaner();
+			if (syn!=40||isKeywords(word))
+				return -1;
+			strcpy(columnsName[++columnAmount],word);
+		}
+		if (syn!=51)//)
+			return -1;
 	}
-	if (syn!=51)//)
-		return -1;
-
 	scaner();
 	if (syn!=69)//=
 		return -1;
-	scaner();
-	if (syn!=50)//(
-		return -1;
-	if (getValue(&newValues[0]))
-		return -1;
-	for (i=0,scaner();syn==66;scaner())
+
+	if (columnAmount==0)
+	{
+		if (getValue(&newValues[0]))
+			return -1;
+	} else
 	{
 		scaner();
-		if (getValue(&newValues[++i]))
+		if (syn!=50)//(
+			return -1;
+		if (getValue(&newValues[0]))
+			return -1;
+		for (i=0,scaner();syn==66;scaner())
+		{
+			scaner();
+			if (getValue(&newValues[++i]))
+				return -1;
+		}
+		if (i!=columnAmount)//columns == values
+			return -1;
+		if (syn!=51)//)
 			return -1;
 	}
-	if (i!=columnAmount)//columns == values
-		return -1;
-	if (syn!=51)//)
-		return -1;
 	scaner();
 	if (syn!=13)//where
 		return -1;
@@ -842,7 +856,7 @@ int selectCmd()
 {
 //select函数接口可能需要重写，由于Select可能产生多行数据，每行数据即是一个Value*数组，
 //所以我考虑返回Value*型的二维数组，其中rowAmount指针指向的值记录了行数
-//Value*** select(SelectBody *selectBody, int *rowAmount);
+//int select(SelectBody *selectBody, int *rowAmount);
 	return 0;
 }
 /* 处理一条命令cmd */
