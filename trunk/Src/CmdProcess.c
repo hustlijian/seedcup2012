@@ -175,7 +175,7 @@ int createDatabaseCmd()
 	scaner();
 	if (syn)//确认命令结束
 		return -1;
-	if (createDatabase(word))//建立数据库
+	if (createDatabase(databaseName))//建立数据库
 		return -1;
 	return 0;
 }
@@ -618,6 +618,10 @@ int deleteCmd()
 	Value value;
 
 	scaner();
+	if (syn!=12)//from
+		return -1;
+
+	scaner();
 	if (syn!=40||isKeywords(word))
 		return -1;
 	strcpy(tableName, word);
@@ -836,6 +840,9 @@ int insertCmd()
 //处理select命令
 int selectCmd()
 {
+//select函数接口可能需要重写，由于Select可能产生多行数据，每行数据即是一个Value*数组，
+//所以我考虑返回Value*型的二维数组，其中rowAmount指针指向的值记录了行数
+//Value*** select(SelectBody *selectBody, int *rowAmount);
 	return 0;
 }
 /* 处理一条命令cmd */
