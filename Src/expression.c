@@ -1,5 +1,6 @@
 #include <STDIO.H>
 #include <STDLIB.H>
+#include <STRING.H>
 #include <MATH.H>
 #include "expression.h"
 
@@ -59,72 +60,87 @@ void Makempty1(ORS *s)
 int Empty2(OSS *s)
 {
 	if(s->top == -1) 
-		return 1; 
-	else 
 		return 0; 
+	else 
+		return -1; 
 }
 
 int Empty1(ORS *s)
 {
 	if(s->top == -1) 
-		return 1; 
-	else 
 		return 0; 
+	else 
+		return -1; 
 }
 
-char Gettop2(OSS *s)
+char Gettop2(OSS *s, char *ch)
 {
-	if(Empty2(s))
+	if(!Empty2(s))
 	{
 		printf("\nOSS empty\n");
-		exit(-1);
+		return -1;
 	}
 	else 
-		return  s->List1[s->top].a;
+	{
+		*ch = s->List1[s->top].a;
+		return 0;
+	}
 }
 
-int Gettop21(OSS *s)
+int Gettop21(OSS *s, int *i)
 {
-	if(Empty2(s))  
+	if(!Empty2(s))  
 	{
 		printf("\nOSS empty\n");
-		exit(-1);
+		return -1;
 	}
 	else 
-		return s->List1[s->top].b ;
+	{
+		*i = s->List1[s->top].b ;
+		return 0;
+	}
 }
 
-float Gettop1(ORS *s) 
+int Gettop1(ORS *s, float *flt) 
 {
-	if(Empty1(s))  
+	if(!Empty1(s))  
 	{
 		printf("\nORS empty\n");
-		exit(-1);
+		return -1;
 	}
 	else 
-		return (s->List[s->top]);
+	{
+		*flt = (s->List[s->top]);
+		return 0;
+	}
 }
 
-void Pop2(OSS *s) 
+int Pop2(OSS *s) 
 {
-	if(Empty2(s)) 
+	if(!Empty2(s)) 
 	{
 		printf("\nOSS empty\n");
-		exit(-1);
+		return -1;
 	}
 	else 
+	{
 		s->top--;
+		return 0;
+	}
 }
 
-void Pop1(ORS *s) 
+int Pop1(ORS *s) 
 {
-	if(Empty1(s)) 
+	if(!Empty1(s)) 
 	{
 		printf("\nORS empty\n");
-		exit(-1);
+		return -1;
 	}
 	else 
+	{
 		s->top--;
+		return 0;
+	}
 }
 
 void Push2(OSS *s, char x, int y ) 
@@ -140,13 +156,13 @@ void Push1(ORS *s, float x)
 	s->List[s->top] = x;
 }
 
-float Calcul(char *A) 
+int Calcul(char *A, float *result) 
 {
 	OSS *q;
 	ORS *p;
-	char *s = A, c;
-	float a, b, f;
-	int i = 0, h, w;
+	char *s = A, c, chTemp;
+	float a, b, f, fTemp;
+	int i = 0, h, w, iTemp;
 
 	strcat(s, ";");
 	q = (OSS *)malloc(sizeof(OSS));
@@ -181,29 +197,45 @@ float Calcul(char *A)
 				w = 4;
 				break;
 			}
-			if ( *s == '(' || w > Gettop21(q) )  
+			if (Gettop21(q, &iTemp))
+				return -1;
+			if (Gettop2(q, &chTemp))
+				return -1;
+			if ( *s == '(' || w > iTemp )  
 			{ 
 				Push2(q, *s, w);
 				*s++;
 			} 
-			else if (*s == ';' && Gettop2(q) == ';') 
+			else if (*s == ';' && chTemp == ';') 
 			{
-				return (Gettop1(p));
+				if (Gettop1(p, &fTemp))
+					return -1;
+				*result = fTemp;
 				*s++;
 			} 
-			else if (*s == ')' && Gettop2(q) == '(' )  
+			else if (*s == ')' && chTemp == '(' )  
 			{ 
-				Pop2(q);
+				if(Pop2(q))
+					return -1;
 				*s++;
 			}
-			else if ( w <= Gettop21(q)) 
+			else if ( w <= iTemp) 
 			{
-				b = Gettop1(p);
-				Pop1(p);
-				a = Gettop1(p);
-				Pop1(p);
-				c = Gettop2(q);
-				Pop2(q);
+				if (Gettop1(p, &fTemp))
+					return -1;
+				b = fTemp;
+				if(Pop1(p))
+					return -1;
+				if (Gettop1(p, &fTemp))
+					return -1;
+				a = fTemp;
+				if(Pop1(p))
+					return -1;
+				if (Gettop2(q, &chTemp))
+					return -1;
+				c = chTemp;
+				if(Pop2(q))
+					return -1;
 				switch(c) 
 				{
 				case '+' :
@@ -216,9 +248,13 @@ float Calcul(char *A)
 					f = a * b;
 					break;
 				case '/' :
+					if (!b)
+						return -1;
 					f = a / b;
 					break;
 				case '%' :
+					if(!b)
+						return -1;
 					f = (float)((int)(a) % (int)(b));
 					break;
 				case '^' :
@@ -241,4 +277,6 @@ float Calcul(char *A)
 			i++;
 		}
 	}
+
+	return 0;
 }
