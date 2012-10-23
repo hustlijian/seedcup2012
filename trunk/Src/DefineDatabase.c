@@ -36,14 +36,14 @@ int createDatabase(char *databaseName)
     {
         while (traverse->next != NULL)
         {
-            if (!strcmp(databaseName, traverse->databaseName))
+            if (!strcasecmp(databaseName, traverse->databaseName))
             {
                 free(newDatabase);
                 return -1;
             }
             traverse = traverse->next;
         }
-        if (!strcmp(databaseName, traverse->databaseName))
+        if (!strcasecmp(databaseName, traverse->databaseName))
         {
             free(newDatabase);
             return -1;
@@ -68,14 +68,14 @@ int createTable(char *tableName, char **columnsName,
     {
         while (traverse->next != NULL)
         {
-            if (!strcmp(tableName, traverse->tableName))
+            if (!strcasecmp(tableName, traverse->tableName))
             {
                 free(newTable);
                 return -1;
             }
             traverse = traverse->next;
         }
-        if (!strcmp(tableName, traverse->tableName))
+        if (!strcasecmp(tableName, traverse->tableName))
         {
             free(newTable);
             return -1;
@@ -124,14 +124,14 @@ int addColumn(char *tableName, char *columnName,
     {
         while (columnTraverse->next != NULL)
         {
-            if (!strcmp(columnName, columnTraverse->columnName))
+            if (!strcasecmp(columnName, columnTraverse->columnName))
             {
                 free(newColumn);
                 return -1;
             }
             columnTraverse = columnTraverse->next;
         }
-        if (!strcmp(columnName, columnTraverse->columnName))
+        if (!strcasecmp(columnName, columnTraverse->columnName))
         {
             free(newColumn);
             return -1;
@@ -269,7 +269,7 @@ Table *searchTable(char *tableName)
     if (currentDatabase == NULL)
         return NULL;
     Table *traverse = currentDatabase->tableHead;
-    while (traverse != NULL && strcmp(traverse->tableName,
+    while (traverse != NULL && strcasecmp(traverse->tableName,
                                       tableName))
         traverse = traverse->next;
     return traverse;
@@ -281,7 +281,7 @@ Column *searchColumn(Table *table, char *columnName, Column **prior)
 
     Column *columnTraverse = table->columnHead;
     Column *priorTra = table->columnHead;
-    while (columnTraverse != NULL && strcmp(columnTraverse->columnName, columnName))
+    while (columnTraverse != NULL && strcasecmp(columnTraverse->columnName, columnName))
     {
         priorTra = columnTraverse;
         columnTraverse = columnTraverse->next;
@@ -319,7 +319,7 @@ static void freeAllColumnValue(ColumnValue *columnValue, int isTextType)
     if (columnValue->next != NULL)
     {
         freeAllColumnValue(columnValue->next, isTextType);
-        columnValue->next = NULL;
+        //columnValue->next = NULL;
     }
 
     if (isTextType)
@@ -377,10 +377,7 @@ static void freeAllColumn(Column *column, int isFreeColumn)
     if (column == NULL)
         return ;
     if (column->next != NULL)
-    {
         freeAllColumn(column->next, isFreeColumn);
-        column->next == NULL;
-    }
 
     freeAllColumnValue(column->columnValueHead, column->columnType==TEXT);
     column->columnValueHead = NULL;
@@ -414,7 +411,7 @@ static int dropOneTable(char *databaseName, char *tableName)
 
     while (tableTraverse != NULL)
     {
-        if (!strcmp(tableName, tableTraverse->tableName))
+        if (!strcasecmp(tableName, tableTraverse->tableName))
             break;
         prior = tableTraverse;
         tableTraverse = tableTraverse->next;
@@ -437,7 +434,7 @@ Database *searchDatabase(char *databaseName, Database **prior)
     Database *priorTra = head;
     while (databaseTra != NULL)
     {
-        if (!strcmp(databaseTra->databaseName, databaseName))
+        if (!strcasecmp(databaseTra->databaseName, databaseName))
            break;
         priorTra = databaseTra;
         databaseTra = databaseTra->next;
