@@ -48,12 +48,12 @@ int update(UpdateBody *updateBody)
 
     ColumnValue *columnValueTra = updatedColumn->columnValueHead;
     int findColumnValue;
-    int result;
+    int result = 0;
     int i;
 
     if (updatedColumn->columnType != updateBody->oldValue.columnType) //ÀàÐÍ²»Æ¥Åä
         return -1;
-    while (columnValueTra != NULL)
+    while (columnValueTra != NULL && result != -1)
     {
         findColumnValue = isSameValue(columnValueTra, updateBody->oldValue);
         if (findColumnValue)
@@ -145,7 +145,7 @@ static int getColumnsValue(Table *table, char **columnsName, ColumnValue **colum
         columnTra = columnHead;
         while (columnTra != NULL)
         {
-            if (!strcmp(columnsName[i], columnTra->columnName))
+            if (!strcasecmp(columnsName[i], columnTra->columnName))
             {
                 columnValue[i] = columnTra->columnValueHead;
                 columnType[i] = columnTra->columnType;
@@ -176,7 +176,6 @@ static int isSameValue(ColumnValue *columnValue, Value oldValue)
             result = 1;
         break;
     default:
-        return -1;
         break;
     }
     return result;
@@ -288,7 +287,7 @@ static int getInsertedColumnPos(Table *table, int *position, char **columnsName,
         while (columnTra != NULL)
         {
             //printf("%s\t%s\n", columnTra->columnName, columnsName[i]);
-            if (!strcmp(columnTra->columnName, columnsName[i]))
+            if (!strcasecmp(columnTra->columnName, columnsName[i]))
             {
                 position[i] = count;
                 break;
