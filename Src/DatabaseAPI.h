@@ -25,8 +25,11 @@ typedef struct {
 	char *tableName;
 	char **columnsName;
 	int columnAmount;
-	Condition *condition;
+	Value *value;
+	int isInner;   //1为在内层
+	char *sortColumnName;
 	SORT_ORDER sortOrder;
+	Condition *condition;
 } SelectBody;
 typedef struct {
 	char *tableName;
@@ -49,9 +52,7 @@ int drop(char *databaseName, char *tableName); 	//tableName为NULL时删除整个datab
 int renameDatabase(char *oldName, char *newName);
 int renameTable(char *oldName, char *newName);
 
-//select函数接口可能需要重写，由于Select可能产生多行数据，每行数据即是一个Value*数组，
-//所以我考虑返回Value*型的二维数组，其中rowAmount指针指向的值记录了行数
-int select(SelectBody *selectBody, int *rowAmount);
+int select(SelectBody *selectBody);
 int update(UpdateBody *updateBOdy);
 //int delete(char *tableName, Condition *condition);
 int delete(char *tableName, char *column, Value value);
