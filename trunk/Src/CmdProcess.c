@@ -819,28 +819,40 @@ int insertCmd()
 		scaner();
 		if (syn!=SYN_VALUES)//values
 			return -1;
+	} else if (syn ==SYN_IDENTIFIER)//一个列，省略括号
+	{
+		strcpy(columnsName[0], word);
+		amount = 0;
+		scaner();
+		if (syn!=SYN_VALUES)//values
+			return -1;
 	} else
 		return -1;
-	
-	scaner();
-	if (syn!=SYN_PAREN_LEFT)//(
-		return -1;
-	for (i=0;1;i++)
+	if (amount==0)
 	{
-		if (getValue(&values[i]))
-			return -1;
-		if (values[i].columnType==EMPTY)
-			continue;
+		if (getValue(&values[0]))
+				return -1;
+	}else{
 		scaner();
-		if (syn == SYN_PAREN_RIGHT)//)
-			break;
-		if (syn != SYN_COMMA)//,
+		if (syn!=SYN_PAREN_LEFT)//(
+			return -1;
+		for (i=0;1;i++)
+		{
+			if (getValue(&values[i]))
+				return -1;
+			if (values[i].columnType==EMPTY)
+				continue;
+			scaner();
+			if (syn == SYN_PAREN_RIGHT)//)
+				break;
+			if (syn != SYN_COMMA)//,
+				return -1;
+		}
+		if (!colFlag&&i!=amount)//columns == values
+			return -1;
+		if (syn!=SYN_PAREN_RIGHT)//)
 			return -1;
 	}
-	if (!colFlag&&i!=amount)//columns == values
-		return -1;
-	if (syn!=SYN_PAREN_RIGHT)//)
-		return -1;
 
 	scaner();
 	if (syn)//确认命令结束
@@ -865,6 +877,7 @@ int selectCmd()
 //select函数接口可能需要重写，由于Select可能产生多行数据，每行数据即是一个Value*数组，
 //所以我考虑返回Value*型的二维数组，其中rowAmount指针指向的值记录了行数
 //Value*** select(SelectBody *selectBody, int *rowAmount);
+	p = NULL;
 	return 0;
 }
 /* 处理一条命令cmd */
@@ -915,7 +928,8 @@ int processCmd(char *cmd)
 			flag = -1;
 			break;
 		}
-
+	if (!syn) //end
+		break;
 	}
 	return flag;
 }
