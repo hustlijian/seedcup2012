@@ -9,13 +9,14 @@ static int updateData(ColumnValue **columnsValue, COLUMN_TYPE *columnType, Value
               int size);
 static int isSameValue(ColumnValue *columnValue, Value oldValue);
 static void assignData(ColumnValue *columnValue, Value newValue);
+static int hasNoneType(Column **allColumn, int size);
 static void initCurrent(Column **allColumn, ColumnValue **current, int size);
 static void deleteFirstNode(Column **allColumn, int size);
 static void deleteNode(ColumnValue **current, ColumnValue **prior, int size);
 static void moveAllColumnPointer(ColumnValue **current, ColumnValue **prior, int size);
 static int getInsertedColumnPos(Table *table, int *position, char **columnsName, int size);
-static int insertColumnsValue(Column **columns, int columnSize, int *insertedColumnPos, Value *values,
-                       int valueSize);
+static int insertColumnsValue(Column **columns, int columnSize, int *insertedColumnPos,
+                              Value *values, int valueSize);
 static int sameType(Column **columns, int *insertedColumnPos, Value *values, int size);
 static int searchPos(int *insertedColumnPos, int key, int size);
 
@@ -46,13 +47,12 @@ int update(UpdateBody *updateBody)
         return -1;
 
     ColumnValue *columnValueTra = updatedColumn->columnValueHead;
-    int i;
     int findColumnValue;
     int result;
+    int i;
 
     if (updatedColumn->columnType != updateBody->oldValue.columnType) //ÀàÐÍ²»Æ¥Åä
         return -1;
-
     while (columnValueTra != NULL)
     {
         findColumnValue = isSameValue(columnValueTra, updateBody->oldValue);
@@ -78,6 +78,8 @@ int delete(char *tableName, char *columnName, Value value)
     Column *allColumn[SIZE];
     int size;
     size = getAllColumn(table, allColumn, SIZE);
+    if (hasNoneType(allColumn, size))
+        return -1;
 
     ColumnValue *columnValueTra = column->columnValueHead;
     ColumnValue *current[SIZE];
@@ -113,6 +115,7 @@ int insert(char *tableName, char **columnsName, Value *values, int amount)
     size = getAllColumn(table, allColumn, SIZE);
     if (amount > size)
         return -1;
+
 
     int insertedColumnPos[amount];
     int hasBadColumnName = 0;
@@ -229,7 +232,16 @@ int getAllColumn(Table *table, Column **allColumn, int maxSize)
     }
     return count;
 }
-
+static int hasNoneType(Column **allColumn, int size)
+{
+    int i;
+    for (i = 0; i < size; i++)
+    {
+        if (allColumn[i]->columnType == NONE)
+            return 1;
+    }
+    return 0;
+}
 static void initCurrent(Column **allColumn, ColumnValue **current, int size)
 {
     int i;
@@ -289,8 +301,8 @@ static int getInsertedColumnPos(Table *table, int *position, char **columnsName,
     }
     return 0;
 }
-static int insertColumnsValue(Column **columns, int columnSize, int *insertedColumnPos, Value *values,
-                       int valueSize)
+static int insertColumnsValue(Column **columns, int columnSize, int *insertedColumnPos,
+                              Value *values, int valueSize)
 {
     int isSameType = sameType(columns, insertedColumnPos, values, valueSize);
     if (!isSameType)

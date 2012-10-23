@@ -70,7 +70,7 @@ int createTable(char *tableName, char **columnsName,
         {
             if (!strcmp(tableName, traverse->tableName))
             {
-
+                free(newTable);
                 return -1;
             }
             traverse = traverse->next;
@@ -89,6 +89,8 @@ int createTable(char *tableName, char **columnsName,
     for (i = 0; i < columnAmount; i++)
     {
         newColumn = (Column *)calloc(1, sizeof(Column));
+        if (columnsName == NULL)
+            return -1;
         strncpy(newColumn->columnName, columnsName[i], LENGTH-1);
         newColumn->columnType = columnsType[i];
         if (i == 0)

@@ -136,7 +136,8 @@ int showAllColumnValue(char *tableName)
     int i;
 
     printf("Begin -- \n");
-
+    showColumn(tableName, NOTSORT);
+    showColumnType(tableName);
     if (allColumn[0] == NULL)
         printf("$\n");
     else
@@ -144,7 +145,7 @@ int showAllColumnValue(char *tableName)
         for (i = 0; i < length; i++)
             columnValueTra[i] = allColumn[i]->columnValueHead;
         if (columnValueTra[0] == NULL)
-            printf("$");
+            printf("$\n");
         while (columnValueTra[0] != NULL)
         {
             for (i = 0; i < length; i++)
@@ -155,7 +156,7 @@ int showAllColumnValue(char *tableName)
             printf("\n");
         }
     }
-    printf("\nEnd -- \n");
+    printf("End -- \n");
     return 0;
 }
 static void sortStringArray(char **stringArray, int size, SORT_ORDER sortOrder)
