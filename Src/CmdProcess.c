@@ -36,7 +36,7 @@ int mystrcmp(const char *str1, const char *str2)
 	{
 		c1=tolower(str1[i]);
 		c2=tolower(str2[i++]);
-	} while ((c1==c2)&&c1);
+	} while ((c1==c2)&&c1&&c2);
 	return (c1-c2);
 }
 
@@ -57,23 +57,23 @@ int getTypeNum(char *str)
 		}
 	if (str[i]=='\0')//数字
 	{
-		if (flag==1) return 42; //浮点数
+		if (flag==1) return SYN_FLOAT_NUMBER; //浮点数
 		if (flag>1) return 0;//错误输入
-		return 41; //整数
+		return SYN_INTEGER_NUMBER; //整数
 	} 
 	if (isalpha(str[0])||str[0]=='_') //标识符
 	{
 		for (i=0;i<NUM_KEYWORDS;i++)
 			if (!mystrcmp(keywords[i], str))
 				break;
-		if (i==NUM_KEYWORDS) return 40;//一般标识符
+		if (i==NUM_KEYWORDS) return SYN_IDENTIFIER;//一般标识符
 		else return (i+1);
 	}
 	//运算符
 	for (i=0;i<NUM_OPERATOR;i++)
 		if (!strcmp(str, operatorwords[i]))
 			break;
-	if (i<NUM_OPERATOR) return (i+50);
+	if (i<NUM_OPERATOR) return (i+SYN_OPERATOR_BASE);
 	else return 0;
 	return 0;
 }
@@ -91,7 +91,7 @@ void scaner()
 
 	i = 0;
 	if(p==NULL) {
-		syn = 0;
+		syn = SYN_ELSE;
 		word[0]='\0';
 		return;
 	}
@@ -138,7 +138,7 @@ void scaner()
 		syn = getTypeNum(word); 
 	} else //空
 	{
-		syn = 0;
+		syn = SYN_ELSE;
 		word[0]='\0';
 	}
 	p = p+i-1;
@@ -154,21 +154,22 @@ int isKeywords(char *str)
 	return 0;  //不是关键字
 }
 
-int checkDatabaseName(char *str)
+int checkName(char *str)
 {
 	int i;
 	for (i=0;str[i];i++)
-		if(!isalpha(str[i])&&str[i]!='_')
+		if(!isalpha(str[i])&&str[i]!='_')	//isalpha判断字符是否为英文字母
 			return 0;
 	return 1;
 }
 int createDatabaseCmd()
 {
 	char databaseName[NAME_LENGHT];
+
 	scaner();
-	if (syn!=40||isKeywords(word)) //不是关键字
+	if (syn!=SYN_IDENTIFIER||isKeywords(word)) //检查关键字
 		return -1;
-	if (!checkDatabaseName(word)) //检查数据名，英文字符，下划线
+	if (!checkName(word)) //检查数据名，英文字符，下划线
 		return -1;
 	strcpy(databaseName, word);
 
@@ -188,9 +189,9 @@ int createTableCmd()
 	char *p[COL_NUM];
 
 	scaner();
-	if (syn!=40 || isKeywords(word))//表名使用关键字
+	if (syn!=SYN_IDENTIFIER || isKeywords(word))//表名使用关键字
 		return -1;
-	if (!checkDatabaseName(word)) //检查数据名，英文字符，下划线
+	if (!checkName(word)) //检查数据名，英文字符，下划线
 		return -1;
 	strcpy(tableName,word);
 
@@ -201,29 +202,29 @@ int createTableCmd()
 			return -1;
 		return 0;
 	}
-	if(syn!=50)//(
+	if(syn!=SYN_PAREN_LEFT)	//'('
 		return -1;
 	for (countAmount=0;countAmount<COL_NUM;countAmount++)
 	{
 		scaner();
-		if(syn!=40||isKeywords(word)) 
+		if(syn!=SYN_IDENTIFIER||isKeywords(word)) 
 			return -1;
-		if (!checkDatabaseName(word)) //检查数据名，英文字符，下划线
+		if (!checkName(word)) //检查数据名，英文字符，下划线
 			return -1;
-		strcpy(columnsName[countAmount],word);
+		strcpy(columnsName[countAmount], word);
 
 		scaner();
-		if(syn>25&&syn<29)  //指定类型26,27,28
-			columnType[countAmount] = syn-26;
+		if(syn>=SYN_INT&&syn<=SYN_NONE)  //指定类型int26,float27,text28
+			columnType[countAmount] = syn-SYN_INT;
 		else {
 			columnType[countAmount] = NONE;
-			if (syn==51) break; //右括号
-			if (syn!=66) return -1; //逗号
+			if (syn==SYN_PAREN_RIGHT) break; //')'
+			if (syn!=SYN_COMMA) return -1; //逗号
 		}
 
 		scaner();
-		if (syn==51) break; //右括号
-		if (syn!=66) return -1; //逗号
+		if (syn==SYN_PAREN_RIGHT) break; //右括号
+		if (syn!=SYN_COMMA) return -1; //逗号
 	}
 
 	for (i=0;i<=countAmount;i++)
@@ -235,7 +236,7 @@ int createTableCmd()
 	if (syn)//确认命令结束
 		return -1;
 
-	if(createTable(tableName,p, columnType, countAmount+1))
+	if(createTable(tableName, p, columnType, countAmount+1))
 		return -1;
 	return 0;
 }
@@ -243,10 +244,10 @@ int createTableCmd()
 int createCmd()
 {
 	scaner();
-	if(syn==2)
+	if(syn==SYN_DATABASE)	//database
 	{
 		return createDatabaseCmd();
-	} else if (syn==3)
+	} else if (syn==SYN_TABLE)	//table
 	{
 		return createTableCmd();
 	} else 
@@ -259,14 +260,14 @@ int alterAddCmd(char *tableName)
 	COLUMN_TYPE columnType;
 
 	scaner();
-	if (syn!=40)
+	if (syn != SYN_IDENTIFIER)
 		return -1;
 	strcpy(columnName,word);
 
 	scaner();
-	if(syn>25&&syn<29)  //指定类型26,27,28
-		columnType = syn-26;
-	else if (syn==0) 
+	if(syn>=SYN_INT&&syn<=SYN_FLOAT)  //指定类型26,27,28
+		columnType = syn-SYN_INT;
+	else if (syn==SYN_ELSE) 
 		columnType = NONE;
 	else
 		return -1;
@@ -284,11 +285,11 @@ int alterRmCmd(char *tableName)
 {
 	char columnName[NAME_LENGHT];
 	scaner();
-	if (syn!=7)
+	if (syn!=SYN_COLUMN)
 		return -1;
 
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	
 	strcpy(columnName,word);
@@ -307,18 +308,18 @@ int alterAlterCmd(char *tableName)
 	COLUMN_TYPE columnType;
 	
 	scaner();
-	if (syn!=7)
+	if (syn!=SYN_COLUMN)
 		return -1;
 
 	scaner();
-	if (syn!=40)
+	if (syn!=SYN_IDENTIFIER)
 		return -1;
 	strcpy(columnName,word);
 	
 	scaner();
-	if(syn>25&&syn<29)  //指定类型26,27,28
-		columnType = syn-26;
-	else if (syn==0) 
+	if(syn>=SYN_INT&&syn<=SYN_TEXT)  //指定类型26,27,28
+		columnType = syn-SYN_INT;
+	else if (syn==SYN_ELSE) 
 		columnType = NONE;
 	else
 		return -1;
@@ -336,22 +337,22 @@ int alterCmd()
 {
 	char tableName[NAME_LENGHT];
 	scaner();
-	if (syn!=3)
+	if (syn!=SYN_TABLE)
 		return -1;
 
 	scaner();
-	if (syn!=40)
+	if (syn!=SYN_IDENTIFIER)
 		return -1;
 	strcpy(tableName,word);
 
 	scaner();
-	if (syn==6)//add
+	if (syn==SYN_ADD)//add
 	{
 		return alterAddCmd(tableName);
-	} else if (syn==9)//drop
+	} else if (syn==SYN_DROP)//drop
 	{
 		return alterRmCmd(tableName);
-	}else if (syn ==4)//alter
+	}else if (syn ==SYN_ALTER)//alter
 	{
 		return alterAlterCmd(tableName);
 	}else 
@@ -363,11 +364,11 @@ int truncateCmd()
 {
 	char tableName[NAME_LENGHT];
 	scaner();
-	if (syn!=3)
+	if (syn!=SYN_TABLE)
 		return -1;
 	
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	strcpy(tableName, word);
 
@@ -383,7 +384,7 @@ int useCmd()
 {
 	char databaseName[NAME_LENGHT];
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	strcpy(databaseName, word);
 
@@ -401,14 +402,14 @@ int dropCmd()
 	char tableName[NAME_LENGHT];
 
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	strcpy(databaseName, word);
 
 	scaner();
-	if (syn==0)
+	if (syn==SYN_ELSE)
 		return drop(databaseName, NULL);
-	if (syn==40)
+	if (syn==SYN_IDENTIFIER)
 		strcpy(tableName, word);
 	else
 		return -1;
@@ -427,12 +428,12 @@ int renameDatabaseCmd()
 	char newName[NAME_LENGHT];
 
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	strcpy(oldName, word);
 
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 
 	strcpy(newName, word);
@@ -450,12 +451,12 @@ int renameTableCmd()
 	char oldName[NAME_LENGHT];
 	char newName[NAME_LENGHT];
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	strcpy(oldName, word);
 	
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	strcpy(newName, word);
 	
@@ -470,10 +471,10 @@ int renameTableCmd()
 int renameCmd()
 {
 	scaner();
-	if (syn==2)//数据库
+	if (syn==SYN_DATABASE)//数据库
 	{
 		return renameDatabaseCmd();
-	} else if(syn==3)//表
+	} else if(syn==SYN_TABLE)//表
 	{
 		return renameTableCmd();
 	}
@@ -483,17 +484,17 @@ int renameCmd()
 int  checkSort(SORT_ORDER *sortOrder)
 {
 	scaner();
-	if (syn==0) //NOSORT
+	if (syn==SYN_ELSE) //NOSORT
 		*sortOrder = NOTSORT;
-	else if (syn==14)//SORT
+	else if (syn==SYN_ORDER)//ORDER
 	{
 		scaner();
-		if (syn!=15)//by
+		if (syn!=SYN_BY)//by
 			return -1;
 		scaner();
-		if (syn==16)
+		if (syn==SYN_DESC)
 			*sortOrder = DESC;
-		else if (syn==17)
+		else if (syn==SYN_INCR)
 			*sortOrder = INCR;
 		else 
 			return -1;
@@ -552,19 +553,19 @@ int showCmd()
 	char databaseName[NAME_LENGHT];
 
 	scaner();
-	if (syn==25)//databases
+	if (syn==SYN_DATABASES)//databases
 		return showDatabaseCmd();
-	else if(syn==3)//table
+	else if(syn==SYN_TABLE)//table
 		return showTableCmd(NULL);
-	else if(syn==40)//database_name,table_name
+	else if(syn==SYN_IDENTIFIER)//database_name,table_name
 		strcpy(databaseName, word);
 	else
 		return -1;
 
 	scaner();
-	if (syn==3)//table
+	if (syn==SYN_TABLE)//table
 		return showTableCmd(databaseName);
-	else if (syn==7)//column
+	else if (syn==SYN_COLUMN)//column
 		return showColumnCmd(databaseName);	
 	else 
 		return -1;
@@ -576,7 +577,7 @@ int getValue(Value *value)
 	int i;
 
 	scaner();
-	if (syn==67)//',类型是字符串
+	if (syn==SYN_QUOTE)//',类型是字符串
 	{
 		value->columnType = TEXT;
 		str = (char *)malloc(sizeof(char)*NAME_LENGHT);
@@ -599,17 +600,17 @@ int getValue(Value *value)
 		value->columnValue.textValue = str;
 		return 0;
 
-	} else if (syn==41)//整数
+	} else if (syn==SYN_INTEGER_NUMBER)//整数
 	{
 		value->columnType = INT;
 		value->columnValue.intValue = atoi(word);
 		return 0;
-	}else if (syn==42)//浮点数
+	}else if (syn==SYN_FLOAT_NUMBER)//浮点数
 	{
 		value->columnType = FLOAT;
 		value->columnValue.floatValue = (float)atof(word);
 		return 0;
-	} else if (syn==66)//,.空类型
+	} else if (syn==SYN_COMMA)//,.空类型
 	{
 		value->columnType = EMPTY;
 		return 0;
@@ -624,25 +625,25 @@ int deleteCmd()
 	Value value;
 
 	scaner();
-	if (syn!=12)//from
+	if (syn!=SYN_FROM)//from
 		return -1;
 
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	strcpy(tableName, word);
 
 	scaner();
-	if (syn!=13)//where
+	if (syn!=SYN_WHERE)//where
 		return -1;
 
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	strcpy(colum, word);
 
 	scaner();
-	if (syn!=57)//==
+	if (syn!=SYN_EQUAL)//==
 		return -1;
 
 	if (getValue(&value))
@@ -672,74 +673,75 @@ int updateCmd()
 	int i;
 
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	strcpy(tableName, word);
 
 	scaner();
-	if (syn!=19)//set
+	if (syn!=SYN_SET)//set
 		return -1;
+
 	scaner();
-	if (syn==40)
+	if (syn==SYN_IDENTIFIER)
 	{
 		strcpy(columnsName[0], word);
 		columnAmount = 0;
 	}else 
 	{	
-		if (syn!=50)//(
-			return -1;
-		
-		scaner();
-		if (syn!=40) //columnsNames
-			return -1;
-		strcpy(columnsName[0], word);
-		for (scaner(),columnAmount = 0;syn==66;scaner()) //一直到:)
-		{		
-			scaner();
-			if (syn!=40||isKeywords(word))
-				return -1;
-			strcpy(columnsName[++columnAmount],word);
-		}
-		if (syn!=51)//)
-			return -1;
-	}
+    if (syn!=SYN_PAREN_LEFT)//(
+      return -1;
+    
+    scaner();
+    if (syn!=SYN_IDENTIFIER) //columnsNames
+      return -1;
+    strcpy(columnsName[0], word);
+    for (scaner(),columnAmount = 0;syn==SYN_COMMA;scaner()) //一直到:)
+    {		
+      scaner();
+      if (syn!=SYN_IDENTIFIER||isKeywords(word))
+        return -1;
+      strcpy(columnsName[++columnAmount],word);
+    }
+    if (syn!=SYN_PAREN_RIGHT)//)
+      return -1;
+  }
 	scaner();
-	if (syn!=69)//=
+	if (syn!=SYN_ASSIGN)//=
 		return -1;
-
-	if (columnAmount==0)
+		
+  if (columnAmount==0)
 	{
 		if (getValue(&newValues[0]))
 			return -1;
 	} else
 	{
-		scaner();
-		if (syn!=50)//(
-			return -1;
-		if (getValue(&newValues[0]))
-			return -1;
-		for (i=0,scaner();syn==66;scaner())
-		{
-			scaner();
-			if (getValue(&newValues[++i]))
-				return -1;
-		}
-		if (i!=columnAmount)//columns == values
-			return -1;
-		if (syn!=51)//)
-			return -1;
-	}
+    scaner();
+    if (syn!=SYN_PAREN_LEFT)//(
+      return -1;
+    if (getValue(&newValues[0]))
+      return -1;
+    for (i=0,scaner();syn==SYN_COMMA;scaner())
+    {
+      scaner();
+      if (getValue(&newValues[++i]))
+        return -1;
+    }
+    if (i!=columnAmount)//columns == values
+      return -1;
+    if (syn!=SYN_PAREN_RIGHT)//)
+      return -1;
+  }
 	scaner();
-	if (syn!=13)//where
+	if (syn!=SYN_WHERE)//where
 		return -1;
 
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	strcpy(updatedColumn, word);
 
 	scaner();
-	if (syn!=57)//==
+	if (syn!=SYN_EQUAL)//==
 		return -1;
 	if (getValue(&oldValue))
 		return -1;
@@ -788,40 +790,40 @@ int insertCmd()
 	int colFlag=0;
 
 	scaner();
-	if (syn!=22)//into
+	if (syn!=SYN_INTO)//into
 		return -1;
 	scaner();
-	if (syn!=40||isKeywords(word))
+	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
 	strcpy(tableName, word);
 
 	scaner();
-	if (syn==23)//values
+	if (syn==SYN_VALUES)//values
 	{
 		colFlag = 1;
-	} else if (syn==50)//(
+	} else if (syn==SYN_PAREN_LEFT)//(
 	{
 		scaner();
-		if (syn!=40) //columnsNames
+		if (syn!=SYN_IDENTIFIER) //columnsNames
 			return -1;
 		strcpy(columnsName[0], word);
-		for (scaner(),amount = 0;syn==66;scaner()) //,.一直到:)
+		for (scaner(),amount = 0;syn==SYN_COMMA;scaner()) //,.一直到:)
 		{		
 			scaner();
-			if (syn!=40||isKeywords(word))
+			if (syn!=SYN_IDENTIFIER||isKeywords(word))
 				return -1;
 			strcpy(columnsName[++amount],word);
 		}
-		if (syn!=51)//)
+		if (syn!=SYN_PAREN_RIGHT)//)
 			return -1;
 		scaner();
-		if (syn!=23)//values
+		if (syn!=SYN_VALUES)//values
 			return -1;
 	} else
 		return -1;
 	
 	scaner();
-	if (syn!=50)//(
+	if (syn!=SYN_PAREN_LEFT)//(
 		return -1;
 	for (i=0;1;i++)
 	{
@@ -830,14 +832,14 @@ int insertCmd()
 		if (values[i].columnType==EMPTY)
 			continue;
 		scaner();
-		if (syn == 51)//)
+		if (syn == SYN_PAREN_RIGHT)//)
 			break;
-		if (syn != 66)//,
+		if (syn != SYN_COMMA)//,
 			return -1;
 	}
-	if (i!=amount)//columns == values
+	if (!colFlag&&i!=amount)//columns == values
 		return -1;
-	if (syn!=51)//)
+	if (syn!=SYN_PAREN_RIGHT)//)
 		return -1;
 
 	scaner();
@@ -862,7 +864,7 @@ int selectCmd()
 {
 //select函数接口可能需要重写，由于Select可能产生多行数据，每行数据即是一个Value*数组，
 //所以我考虑返回Value*型的二维数组，其中rowAmount指针指向的值记录了行数
-//int select(SelectBody *selectBody, int *rowAmount);
+//Value*** select(SelectBody *selectBody, int *rowAmount);
 	return 0;
 }
 /* 处理一条命令cmd */
@@ -876,40 +878,41 @@ int processCmd(char *cmd)
 		if (strlen(word)<1)
 			continue;
 		switch(syn){
-		case 1:   //create
+		case SYN_CREATE:   //create
 			flag = createCmd();
 			break;
-		case 4:   //alter
+		case SYN_ALTER:   //alter
 			flag = alterCmd();
 			break;
-		case 5:  //truncate
+		case SYN_TRUNCATE:  //truncate
 			flag = truncateCmd();
 			break;
-		case 8: //use
+		case SYN_USE: //use
 			flag = useCmd();
 			break;
-		case 9: //drop
+		case SYN_DROP: //drop
 			flag = dropCmd();
 			break;
-		case 10://rename
+		case SYN_RENAME://rename
 			flag = renameCmd();
 			break;
-		case 24://show
+		case SYN_SHOW://show
 			flag = showCmd();
 			break;
-		case 20: //delete
+		case SYN_DELETE: //delete
 			flag = deleteCmd();
 			break;
-		case 18: //update
+		case SYN_UPDATE: //update
 			flag = updateCmd();
 			break;
-		case 21: //insert
+		case SYN_INSERT: //insert
 			flag = insertCmd();
 			break;
-		case 11: //select
+		case SYN_SELECT: //select
 			flag = selectCmd();
 			break;
-		default: 
+		default: //unknown cmd
+			flag = -1;
 			break;
 		}
 

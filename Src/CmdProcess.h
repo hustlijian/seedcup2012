@@ -41,9 +41,11 @@
 #define SYN_LIKE		31
 #define SYN_AND			32
 #define SYN_OR			33
+
 #define SYN_IDENTIFIER	40
 #define SYN_INTEGER_NUMBER	41
 #define SYN_FLOAT_NUMBER	42
+
 #define SYN_OPERATOR_BASE	50
 #define SYN_PAREN_LEFT	50
 #define SYN_PAREN_RIGHT	51
