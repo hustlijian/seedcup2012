@@ -27,6 +27,6 @@ typedef struct
 	int n;
 }SeqList;
 
-float Calcul(char *A);
+int Calcul(char *A, float *result);
 
 #endif	//_EXPRESSION_H
