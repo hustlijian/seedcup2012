@@ -62,6 +62,7 @@ int createTable(char *tableName, char **columnsName,
     Table *newTable = (Table *)calloc(1, sizeof(Table));
     strncpy(newTable->tableName, tableName, LENGTH-1);
     newTable->next = NULL;
+    newTable->columnHead = NULL;
     if (traverse == NULL)
         currentDatabase->tableHead = newTable;
     else
@@ -90,7 +91,10 @@ int createTable(char *tableName, char **columnsName,
     {
         newColumn = (Column *)calloc(1, sizeof(Column));
         if (columnsName == NULL)
+        {
+            free(newColumn);
             return -1;
+        }
         strncpy(newColumn->columnName, columnsName[i], LENGTH-1);
         newColumn->columnType = columnsType[i];
         if (i == 0)
