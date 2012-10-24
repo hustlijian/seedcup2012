@@ -1,9 +1,11 @@
 #ifndef DATABASEAPI_H_INCLUDED
 #define DATABASEAPI_H_INCLUDED
 
+
 typedef enum {INT, FLOAT, TEXT, NONE, EMPTY} COLUMN_TYPE;
 typedef enum {EQ, NE, GT, LT, GET, LET, BETWEEN, LIKE} OPERATOR;
 typedef enum {NOTSORT, DESC, INCR} SORT_ORDER;
+typedef enum {OR, AND} LOGIC;
 
 typedef struct {
 	COLUMN_TYPE columnType;
@@ -18,14 +20,14 @@ typedef struct condition {
 	Value value;
 	Value value2;
 	OPERATOR operator;
-	int logic;
-	struct condition *nextCondition;
+	LOGIC logic;
+	struct condition *next;
 } Condition;
 typedef struct {
 	char *tableName;
 	char **columnsName;
 	int columnAmount;
-	Value *value;
+	Value *resultValue;
 	int isInner;   //1ÎªÔÚÄÚ²ã
 	char *sortColumnName;
 	SORT_ORDER sortOrder;
