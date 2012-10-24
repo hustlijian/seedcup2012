@@ -6,25 +6,37 @@
 int main(int argc, char* argv[])
 {	
 	char str[1024], c;
-	int i;
-	/*
+	char inputFile[64]="";
+	char outputFile[64]="";
+	int i = 0;
+
 	if (argc < 3)
 	{
 		printf("check your argument!\n");
 		return -1;
 	}
-	if(freopen(argv[1], "r", stdin)==NULL)
+
+	do 
 	{
-		printf("can not open %s\n", argv[1]);
+		i++;
+		strcat(inputFile, argv[i]);
+		strcat(inputFile, " ");
+	} while (strcmp(&argv[i][strlen(argv[i])-4] , ".txt"));
+
+	do 
+	{
+		i++;
+		strcat(outputFile, argv[i]);
+		strcat(outputFile, " ");
+	} while (strcmp(&argv[i][strlen(argv[i])-4] , ".txt"));
+
+	if(freopen(inputFile, "r", stdin)==NULL)
+	{
+		printf("can not open %s\n", inputFile);
 		return -1;
 	}
-	freopen(argv[2],"w", stdout);
-	*/
-#if 0
-	test();
-#else
-	freopen("interface.txt", "r", stdin); 
-	freopen("interface_out.txt","w", stdout);
+	freopen(outputFile,"w", stdout);
+
 	do 
 	{
 		for (i=0,c=getchar();c!=';'&&c!=EOF;c=getchar())
@@ -34,6 +46,6 @@ int main(int argc, char* argv[])
 		if(processCmd(str)) //返回为非零报错
 			printf("error\n");
 	} while (c!=EOF);
-#endif		
+	
 	return 0;
 }
