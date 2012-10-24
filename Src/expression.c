@@ -156,7 +156,7 @@ void Push1(ORS *s, float x)
 	s->List[s->top] = x;
 }
 
-int Calcul(char *A, float *result) 
+int calExpression(char *A, float *result) 
 {
 	OSS *q;
 	ORS *p;
