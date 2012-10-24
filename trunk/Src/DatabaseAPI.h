@@ -1,7 +1,7 @@
 #ifndef DATABASEAPI_H_INCLUDED
 #define DATABASEAPI_H_INCLUDED
 
-#define COLUMNNAME_MAX 25
+#define NAME_MAX 25
 
 typedef enum {INT, FLOAT, TEXT, NONE, EMPTY} COLUMN_TYPE;
 typedef enum {EQ, NE, GT, LT, GET, LET, BETWEEN, LIKE} OPERATOR;
@@ -17,7 +17,7 @@ typedef struct {
 	} columnValue;
 } Value;
 typedef struct condition {
-	char columnName[COLUMNNAME_MAX];
+	char columnName[NAME_MAX];
 	Value value;
 	Value value2;
 	OPERATOR operator;
