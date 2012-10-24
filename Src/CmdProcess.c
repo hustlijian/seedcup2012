@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "CmdProcess.h"
+#include "expression.h"
 #include "DatabaseAPI.h"
 
 #define COL_NUM		20
@@ -262,6 +263,8 @@ int alterAddCmd(char *tableName)
 	scaner();
 	if (syn != SYN_IDENTIFIER)
 		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
 	strcpy(columnName,word);
 
 	scaner();
@@ -291,7 +294,8 @@ int alterRmCmd(char *tableName)
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
-	
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
 	strcpy(columnName,word);
 
 	scaner();
@@ -313,6 +317,8 @@ int alterAlterCmd(char *tableName)
 
 	scaner();
 	if (syn!=SYN_IDENTIFIER)
+		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
 		return -1;
 	strcpy(columnName,word);
 	
@@ -343,6 +349,8 @@ int alterCmd()
 	scaner();
 	if (syn!=SYN_IDENTIFIER)
 		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
 	strcpy(tableName,word);
 
 	scaner();
@@ -370,6 +378,8 @@ int truncateCmd()
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
 	strcpy(tableName, word);
 
 	scaner();
@@ -385,6 +395,8 @@ int useCmd()
 	char databaseName[NAME_LENGHT];
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
+		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
 		return -1;
 	strcpy(databaseName, word);
 
@@ -404,13 +416,18 @@ int dropCmd()
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
 	strcpy(databaseName, word);
 
 	scaner();
 	if (syn==SYN_ELSE)
 		return drop(databaseName, NULL);
-	if (syn==SYN_IDENTIFIER)
+	if (syn==SYN_IDENTIFIER){
+		if (!checkName(word)) //名，英文字符，下划线
+			return -1;
 		strcpy(tableName, word);
+	}
 	else
 		return -1;
 
@@ -430,12 +447,15 @@ int renameDatabaseCmd()
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
 	strcpy(oldName, word);
 
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
-
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
 	strcpy(newName, word);
 	
 	scaner();
@@ -453,10 +473,14 @@ int renameTableCmd()
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
 	strcpy(oldName, word);
 	
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
+		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
 		return -1;
 	strcpy(newName, word);
 	
@@ -480,7 +504,7 @@ int renameCmd()
 	}
 	else return -1;
 }
-
+//确认排序的类型
 int  checkSort(SORT_ORDER *sortOrder)
 {
 	scaner();
@@ -558,7 +582,11 @@ int showCmd()
 	else if(syn==SYN_TABLE)//table
 		return showTableCmd(NULL);
 	else if(syn==SYN_IDENTIFIER)//database_name,table_name
+	{
+		if (!checkName(word)) //名，英文字符，下划线
+			return -1;
 		strcpy(databaseName, word);
+	}
 	else
 		return -1;
 
@@ -574,7 +602,9 @@ int showCmd()
 int getValue(Value *value)
 {
 	char *str;
-	int i;
+	int i,num;
+	char innerSelect[1024];
+	char *temp = p;//保存当前命令位置
 
 	scaner();
 	if (syn==SYN_QUOTE)//',类型是字符串
@@ -599,7 +629,6 @@ int getValue(Value *value)
 
 		value->columnValue.textValue = str;
 		return 0;
-
 	} else if (syn==SYN_INTEGER_NUMBER)//整数
 	{
 		value->columnType = INT;
@@ -614,8 +643,75 @@ int getValue(Value *value)
 	{
 		value->columnType = EMPTY;
 		return 0;
+	} else if (syn==SYN_BRACKET_LEFT)//[,like中的text类型
+	{
+		value->columnType = TEXT;
+		str = (char *)malloc(sizeof(char)*NAME_LENGHT);
+		if (str==NULL)
+			return -1;
+		i=0; 
+		do {
+			str[i]=p[i];
+			if(!isalnum(str[i]) && str[i]!=' ' && str[i] != '_' && 
+				str[i]!=']' &&str[i] != '*' && str[i] != '?')
+			{	//必须是字符数字，或者空格，下划线,单引号 ,问号，星号
+				return -1;
+			}
+			i++;
+		}while(p[i-1]&&str[i-1]!=']');
+		if (p[i-1] == '\0')
+			return -1;
+		str[i-1] = '\0';
+		p = p + i;
+		
+		value->columnValue.textValue = str;
+		return 0;
+	} else if (syn == SYN_PAREN_LEFT)//(
+	{
+		scaner();
+		if (syn==SYN_SELECT)//select
+		{
+			num = 1; //(的数目
+			for (i=0;num>0;i++)
+			{
+				innerSelect[i]=p[i];
+				if (p[i]=='(')
+					num++;
+				if (p[i]==')')
+					num--;
+			}
+			
+			innerSelect[i]='\0';
+			temp = p+i;
+			p = innerSelect;
+			if (selectCmd(1, value))//内部查询
+				return -1;
+			p = temp;
+		} else if (syn==SYN_INTEGER_NUMBER || syn== SYN_FLOAT_NUMBER || 
+			syn == SYN_PAREN_LEFT || syn == SYN_MIMUS || syn== SYN_ADD)//int,float,(,-,+
+		{
+			num = 0; //(的数目
+			i=0;
+			p=temp;
+			do{
+				innerSelect[i]=p[i];
+				if (p[i]=='(')
+					num++;
+				if (p[i]==')')
+					num--;
+				i++;
+			}while(num>0);
+			innerSelect[i]='\0';
+			p = p+i;
+
+			if (calExpression(innerSelect, &(value->columnValue.floatValue)))
+				return -1;			
+			value->columnType = FLOAT;			
+		}
+		return 0;
 	} else
 		return -1;
+	return 0;
 } 
 //删除命令
 int deleteCmd()
@@ -631,6 +727,8 @@ int deleteCmd()
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
 	strcpy(tableName, word);
 
 	scaner();
@@ -639,6 +737,8 @@ int deleteCmd()
 
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
+		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
 		return -1;
 	strcpy(colum, word);
 
@@ -675,6 +775,8 @@ int updateCmd()
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
 	strcpy(tableName, word);
 
 	scaner();
@@ -684,6 +786,8 @@ int updateCmd()
 	scaner();
 	if (syn==SYN_IDENTIFIER)
 	{
+		if (!checkName(word)) //名，英文字符，下划线
+			return -1;
 		strcpy(columnsName[0], word);
 		columnAmount = 0;
 	}else 
@@ -694,12 +798,16 @@ int updateCmd()
     scaner();
     if (syn!=SYN_IDENTIFIER) //columnsNames
       return -1;
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
     strcpy(columnsName[0], word);
     for (scaner(),columnAmount = 0;syn==SYN_COMMA;scaner()) //一直到:)
     {		
       scaner();
       if (syn!=SYN_IDENTIFIER||isKeywords(word))
         return -1;
+	  if (!checkName(word)) //名，英文字符，下划线
+		return -1;
       strcpy(columnsName[++columnAmount],word);
     }
     if (syn!=SYN_PAREN_RIGHT)//)
@@ -737,6 +845,8 @@ int updateCmd()
 
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
+		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
 		return -1;
 	strcpy(updatedColumn, word);
 
@@ -795,6 +905,8 @@ int insertCmd()
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
 		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
 	strcpy(tableName, word);
 
 	scaner();
@@ -806,11 +918,15 @@ int insertCmd()
 		scaner();
 		if (syn!=SYN_IDENTIFIER) //columnsNames
 			return -1;
+		if (!checkName(word)) //名，英文字符，下划线
+			return -1;
 		strcpy(columnsName[0], word);
 		for (scaner(),amount = 0;syn==SYN_COMMA;scaner()) //,.一直到:)
 		{		
 			scaner();
 			if (syn!=SYN_IDENTIFIER||isKeywords(word))
+				return -1;
+			if (!checkName(word)) //名，英文字符，下划线
 				return -1;
 			strcpy(columnsName[++amount],word);
 		}
@@ -821,6 +937,8 @@ int insertCmd()
 			return -1;
 	} else if (syn ==SYN_IDENTIFIER)//一个列，省略括号
 	{
+		if (!checkName(word)) //名，英文字符，下划线
+			return -1;
 		strcpy(columnsName[0], word);
 		amount = 0;
 		scaner();
@@ -870,14 +988,189 @@ int insertCmd()
 	}
 	return 0;
 }
-
-//处理select命令
-int selectCmd()
+//有了Order命令，设置类型
+int setSort(SORT_ORDER *sortOrder, char *sortColumn)
 {
-//select函数接口可能需要重写，由于Select可能产生多行数据，每行数据即是一个Value*数组，
-//所以我考虑返回Value*型的二维数组，其中rowAmount指针指向的值记录了行数
-//Value*** select(SelectBody *selectBody, int *rowAmount);
-	p = NULL;
+	scaner();
+	if (syn!=SYN_BY)//by
+		return -1;
+	scaner();
+	if (syn!=SYN_IDENTIFIER)//sort column name
+		return -1;
+	if (!checkName(word)) //名，英文字符，下划线
+		return -1;
+	strcpy(sortColumn, word);
+	
+	scaner();
+	if (syn==SYN_DESC)
+		*sortOrder = DESC;
+	else if (syn==SYN_INCR)
+		*sortOrder = INCR;
+	else 
+		return -1;
+	return 0;
+}
+//获得一个where的条件
+int setOneWhere(Condition *condition)
+{
+	scaner();
+	if (syn!=SYN_IDENTIFIER)//columnName
+		return -1;
+	if (!checkName(word))
+		return -1;
+	strcpy(condition->columnName, word);
+
+	scaner();
+	switch(syn)
+	{
+	case SYN_EQUAL://==
+		condition->operator = EQ;
+		//fall through
+	case SYN_NOT_EQUAL://~=
+		condition->operator = NE;
+		//fall through
+	case SYN_GREATER://>
+		condition->operator = GT;
+		//fall through
+	case SYN_LESS://<
+		condition->operator = LT;
+		//fall through
+	case SYN_MORE_EQUAL://>=
+		condition->operator = GET;
+		//fall through
+	case SYN_LESS_EQUAL://<=
+		condition->operator = LET;
+		//getvalue
+		if (getValue(&(condition->value)))
+			return -1;
+		break;
+	case SYN_LIKE://like
+		condition->operator = LIKE;
+		if(getValue(&(condition->value)))
+			return -1;
+		break;
+	case SYN_BETWEEN://between
+		condition->operator = BETWEEN;
+		scaner();
+		if (syn!=SYN_BRACKET_LEFT)//[
+			return -1;
+		if(getValue(&(condition->value)))//value1
+			return -1;
+		scaner();
+		if (syn!=SYN_COMMA)//,
+			return -1;
+		if (getValue(&(condition->value2)))//value2
+			return -1;
+		scaner();
+		if (syn!=SYN_BRACKET_RIGHT)//]
+			return -1;
+		break;
+	default:
+		return -1;
+		break;
+	}
+	return 0;
+}
+//检查是否有or,and
+int checkLogic()
+{
+	int i;
+	for (i=0;p[i];i++){//check and, or
+		if (p[i]=='o'||p[i]=='O')
+			if (p[i+1]=='r'||p[i+1]=='R')
+				return 1;
+		if (p[i]=='a'||p[i]=='A')
+			if (p[i+1]=='n'||p[i+1]=='N')
+				if (p[i+2]=='d'||p[i+2]=='D')
+					return 1;
+	}
+	return 0;//没有
+}
+//处理select命令
+int selectCmd(int isInner, Value *resultValue)
+{//int select(SelectBody *selectBody);
+	SelectBody selectBody;
+	char columnsName[COL_NUM][NAME_LENGHT];
+	char *colums[COL_NUM];
+	char tableName[NAME_LENGHT];	
+	int columnAmount, i;
+	
+	char sortColumnName[NAME_LENGHT];
+	SORT_ORDER sortOrder;
+	Condition conditon;
+
+	scaner();
+	if (syn==SYN_MULT) //*
+	{
+		selectBody.columnsName = NULL;
+		scaner();
+		if (syn!=SYN_FROM)//from
+			return -1;
+	} else if (syn==SYN_IDENTIFIER)//column_name
+	{
+		for(columnAmount=0;1;scaner(),columnAmount++){
+			if (syn!=SYN_IDENTIFIER)//column_name
+				return -1;
+			strcpy(columnsName[columnAmount], word);
+			scaner();
+			if (syn==SYN_FROM)//from
+				break;
+			if (syn!=SYN_COMMA)//,
+				return -1;
+		}
+		columnAmount++;
+		for (i=0;i<columnAmount;i++)
+			colums[i] = columnsName[i];
+		selectBody.columnsName = colums;
+		selectBody.columnAmount = columnAmount;
+	} else
+		return -1;
+
+	scaner();
+	if (syn!=SYN_IDENTIFIER)//table_name
+		return -1;
+	if (!checkName(word))
+		return -1;
+	strcpy(tableName, word);
+
+	scaner();
+	if (syn == SYN_WHERE)//where
+	{
+		if (checkLogic()){
+			//复杂logic运算;
+			;
+		} else {
+			if (setOneWhere(&conditon))
+				return -1;
+		}
+	} else if (syn == SYN_ORDER)//order
+	{
+		if (setSort(&sortOrder, sortColumnName))
+			return -1;
+	} 
+
+	if (!isInner)//外层
+	{
+		scaner();
+		if (syn==SYN_ORDER){
+			if (setSort(&sortOrder, sortColumnName))
+				return -1;
+			scaner();
+		}
+		if (syn!=SYN_ELSE)//end
+			return -1;
+	}
+	//todo:select
+	selectBody.tableName = tableName;
+	selectBody.sortColumnName = sortColumnName;
+	selectBody.sortOrder = sortOrder;	
+	selectBody.isInner = isInner;
+	selectBody.resultValue = resultValue;
+	selectBody.condition = &conditon;
+
+	if (select(&selectBody))
+		return -1;
+
 	return 0;
 }
 /* 处理一条命令cmd */
@@ -922,7 +1215,7 @@ int processCmd(char *cmd)
 			flag = insertCmd();
 			break;
 		case SYN_SELECT: //select
-			flag = selectCmd();
+			flag = selectCmd(0, NULL);//外层
 			break;
 		default: //unknown cmd
 			flag = -1;
@@ -932,10 +1225,4 @@ int processCmd(char *cmd)
 		break;
 	}
 	return flag;
-}
-/*用来测试的程序*/
-void test()
-{
-	freopen("input.txt", "r", stdin); 
-	freopen("out.txt","w", stdout);
 }
