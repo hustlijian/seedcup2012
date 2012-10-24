@@ -5,7 +5,7 @@
 typedef enum {INT, FLOAT, TEXT, NONE, EMPTY} COLUMN_TYPE;
 typedef enum {EQ, NE, GT, LT, GET, LET, BETWEEN, LIKE} OPERATOR;
 typedef enum {NOTSORT, DESC, INCR} SORT_ORDER;
-typedef enum {OR, AND} LOGIC;
+typedef enum {OR, AND, NOLOGIC} LOGIC;
 
 typedef struct {
 	COLUMN_TYPE columnType;
