@@ -49,26 +49,26 @@
 #define SYN_FLOAT_NUMBER	42
 
 #define SYN_OPERATOR_BASE	50
-#define SYN_PAREN_LEFT	50
-#define SYN_PAREN_RIGHT	51
-#define SYN_MULT		52
-#define SYN_DIVI		53
-#define SYN_MOD			54
-#define SYN_PULSE		55
-#define SYN_MIMUS		56
-#define SYN_EQUAL		57
-#define SYN_NOT_EQUAL	58
-#define SYN_MORE_EQUAL	59
-#define SYN_LESS_EQUAL	60
-#define SYN_GREATER		61
-#define SYN_LESS		62
-#define SYN_BRACKET_LEFT	63
-#define SYN_BRACKET_RIGHT	64
-#define SYN_SEMICOLON	65
-#define SYN_COMMA		66
-#define SYN_QUOTE		67
-#define SYN_QUESTION	68
-#define SYN_ASSIGN		69
+#define SYN_PAREN_LEFT	50		//(
+#define SYN_PAREN_RIGHT	51		//)
+#define SYN_MULT		52		//*
+#define SYN_DIVI		53		///
+#define SYN_MOD			54		//%
+#define SYN_PULSE		55		//+
+#define SYN_MIMUS		56		//-
+#define SYN_EQUAL		57		//==
+#define SYN_NOT_EQUAL	58		//~=
+#define SYN_MORE_EQUAL	59		//>=
+#define SYN_LESS_EQUAL	60		//<=
+#define SYN_GREATER		61		//>
+#define SYN_LESS		62		//<
+#define SYN_BRACKET_LEFT	63	//[
+#define SYN_BRACKET_RIGHT	64	//]
+#define SYN_SEMICOLON	65		//;
+#define SYN_COMMA		66		//,
+#define SYN_QUOTE		67		//'
+#define SYN_QUESTION	68		//?
+#define SYN_ASSIGN		69		//=
 #define SYN_ELSE		0
 
 
@@ -133,6 +133,11 @@ int setSort(SORT_ORDER *sortOrder, char *sortColumn);
 int setOneWhere(Condition *condition);
 //检查是否有or,and
 int checkLogic();
+/*
+ *复杂逻辑运算
+ *调用前须保存全局指针P，调用后将全局指针指向表达式之后
+ */
+int logicalExpProc(char *expStr, Condition **expList);
 //处理select命令
 int selectCmd(int isInner, Value *resultValue);
 /* 处理一条命令cmd */
