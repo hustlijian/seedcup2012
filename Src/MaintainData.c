@@ -168,8 +168,13 @@ static int handleInnerSelect(SelectBody *selectBody)
     int rowAmount;
     rowAmount = getResultColumnValue(table, &selectedColumn, 1, &resultColumnsValue,
                                      selectBody->condition, 1);
-    if (rowAmount == -1 || rowAmount != 1)
+    if (rowAmount == -1)
         return -1;
+    if (rowAmount == 0)
+    {
+        selectBody->resultValue->columnType = EMPTY;
+        return 0;
+    }
     assignValue(selectBody->resultValue, resultColumnsValue->data,
                 selectedColumn->columnType);
     return 0;
@@ -239,7 +244,11 @@ static int handleOuterSelect(SelectBody *selectBody)
 
     if (rowAmount == -1)
         return -1;
-
+    if (rowAmount == 0)
+    {
+        printf("$\n");
+        return 0;
+    }
     outputResult(resultColumnsValue, columnType, columnAmount, rowAmount, sortByWhich,
                  selectBody->sortOrder);
     return 0;
@@ -271,7 +280,7 @@ static void outputResult(ColumnValue **columnsValue, COLUMN_TYPE *columnType, in
                 printf("\"%s\"", stringTemp);
             else
                 printf("%s", stringTemp);
-            if (j != columnAmount)
+            if (j != columnAmount - 1)
                 putchar(',');
         }
         putchar('\n');

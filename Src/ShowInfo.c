@@ -11,7 +11,7 @@ static void sortStringArray(char **stringArray, int size,
 static void outputStringArray(char **stringArray, int size);
 static void freeStringArray(char **stringArray, int size);
 static char *enumToString(COLUMN_TYPE columnType);
- void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType);
+static void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType);
 
 extern Database *head;
 extern Database *currentDatabase;
@@ -215,7 +215,7 @@ static char *enumToString(COLUMN_TYPE columnType)
         return "NONE";
     }
 }
- void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType)
+static void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType)
 {
     Data data = columnValue->data;
     if (columnValue->hasData)

@@ -8,6 +8,8 @@
 #define MAX 20  //归并后AND数组的最大数目
 #define OPER_AMOUNT 8
 
+#define LENGTH 25
+
 int getColumnAmount(Table *table);
 static int handleAnd(Table *table, Condition *condition, int *andRowNumber, int andRowAmount);
 static int handleOr(Table *table, Condition *condition, int *orRowNumber);
@@ -22,6 +24,7 @@ static int getOperation(Data data, Value *value);
 static int letOperation(Data data, Value *value);
 static int betweenOperation(Data data, Value *value);
 static int likeOperation(Data data, Value *value);
+static int matchRegex(const char *string, const char *pattern);
 static int mergeAndOr(int (*andRowNumber)[ROW_MAX], int *andRowAmount, int andCount, int (*orRowNumber)[ROW_MAX],
                       int *orRowAmount, int orCount, int *resultRowNumber);
 static int insertToResult(int *rowNumber, int rowAmount, int *result, int resultAmount);
@@ -200,6 +203,8 @@ static int match(ColumnValue *columnValue, COLUMN_TYPE columnType, Condition *co
         return -1;
     int operNumber = condition->operator;
     Value value[2] = {condition->value, condition->value2};
+    if (columnValue->hasData == 0)
+        return 0;
     int result = operations[operNumber](columnValue->data, value);
     return result;
 }
@@ -338,21 +343,36 @@ static int betweenOperation(Data data, Value *value)
 static int likeOperation(Data data, Value *value)
 {
     int result = 0;
+    char *regexString;
     switch (value[0].columnType)
     {
     case INT:
-        result = 0;
-        break;
     case FLOAT:
-        result = 0;
         break;
     case TEXT:
-        result = 0;
+        regexString = value[0].columnValue.textValue;
+        result = matchRegex(data.textValue, regexString);
         break;
     default:
         break;
     }
     return result;
+}
+static int matchRegex(const char *string, const char *pattern)
+{
+    const char *begin = pattern;
+    if (*pattern == 0)
+        return 1;
+    if (*string == 0)
+        return 0;
+    if (*pattern != '*' && *pattern != '?')
+        if (*string != *pattern)
+            return matchRegex(string+1, pattern);
+
+    if (*pattern == '?')
+        return matchRegex(string+1, pattern+1);
+
+    return matchRegex(string, pattern+1);
 }
 static int mergeAndOr(int (*andRowNumber)[ROW_MAX], int *andRowAmount, int andCount, int (*orRowNumber)[ROW_MAX],
                       int *orRowAmount, int orCount, int *resultRowNumber)
