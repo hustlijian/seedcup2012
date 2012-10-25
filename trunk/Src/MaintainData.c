@@ -1,8 +1,28 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "Database.h"
 #include "DatabaseAPI.h"
 
+#define ROW_MAX 20
+#define LENGTH 25
+
+extern int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmount,
+                   ColumnValue **resultColumnValue, Condition *condition, int isInner);
+extern int getColumnAmount(Table *table);
+static int handleInnerSelect(SelectBody *selectBody);
+static int handleOuterSelect(SelectBody *selectBody);
+static void assignValue(Value *value, Data data, COLUMN_TYPE columnType);
+static void outputResult(ColumnValue **columnsValue, COLUMN_TYPE *columnType, int columnAmount,
+                        int rowAmount, int sortByWhich, SORT_ORDER sortOrder);
+static void assignString(char *string, ColumnValue *columnValue, COLUMN_TYPE columnType);
+static void sortStringArray(char **stringArray, int rowAmount, int columnAmount, int sortByWhich,
+                       SORT_ORDER sortOrder);
+static void getFinalOrder(char **string, int rowAmount, int columnAmount, SORT_ORDER sortOrder,
+                          int *finalOrder);
+static int descOrderCompare(const char *elem1, const char *elem2);
+static int incrOrderCompare(const char *elem1, const char *elem2);
+static int containsBlank(char *string);
 static int getColumnsValue(Table *table, char **columnsName, ColumnValue **columnValue,
                     COLUMN_TYPE *columnType, int size);
 static int updateData(ColumnValue **columnsValue, COLUMN_TYPE *columnType, Value *newValues,
@@ -25,9 +45,16 @@ static int searchPos(int *insertedColumnPos, int key, int size);
 extern Database *head;
 extern Database *currentDatabase;
 
-int select(SelectBody *selectBody, int *rowAmount)
+int select(SelectBody *selectBody)
 {
-    return 0;
+    if (selectBody == NULL)
+        return -1;
+    int result;
+    if (selectBody->isInner)
+        result = handleInnerSelect(selectBody);
+    else
+        result = handleOuterSelect(selectBody);
+    return result;
 }
 int update(UpdateBody *updateBody)
 {
@@ -130,6 +157,241 @@ int insert(char *tableName, char **columnsName, Value *values, int amount)
     result = insertColumnsValue(allColumn, size, insertedColumnPos, values, amount);
     return result;
 }
+static int handleInnerSelect(SelectBody *selectBody)
+{
+    Table *table = searchTable(selectBody->tableName);
+    Column *selectedColumn = searchColumn(table, selectBody->columnsName[0], NULL);
+    if (selectedColumn == NULL)
+        return -1;
+
+    ColumnValue *resultColumnsValue;
+    int rowAmount;
+    rowAmount = getResultColumnValue(table, &selectedColumn, 1, &resultColumnsValue,
+                                     selectBody->condition, 1);
+    if (rowAmount == -1 || rowAmount != 1)
+        return -1;
+    assignValue(selectBody->resultValue, resultColumnsValue->data,
+                selectedColumn->columnType);
+    return 0;
+}
+static void assignValue(Value *value, Data data, COLUMN_TYPE columnType)
+{
+    value->columnType = columnType;
+    switch (columnType)
+    {
+    case INT:
+        value->columnValue.intValue = data.intValue;
+        break;
+    case FLOAT:
+        value->columnValue.floatValue = data.floatValue;
+        break;
+    case TEXT:
+        value->columnValue.textValue = calloc(LENGTH, sizeof(char));
+        strncpy(value->columnValue.textValue, data.textValue, LENGTH);
+        break;
+    default:
+        break;
+    }
+}
+static int handleOuterSelect(SelectBody *selectBody)
+{
+    Table *table = searchTable(selectBody->tableName);
+    if (table == NULL)
+        return -1;
+    int columnAmount;
+    if (selectBody->columnsName == NULL)
+        columnAmount = getColumnAmount(table);
+    else
+        columnAmount = selectBody->columnAmount;
+    if (columnAmount == 0)
+    {
+        printf("$\n");
+        return 0;
+    }
+
+    Column *selectedColumns[columnAmount];
+    COLUMN_TYPE columnType[columnAmount];
+    int i;
+    int sortByWhich = -1;
+
+    if (selectBody->columnsName == NULL)
+        getAllColumn(table, selectedColumns, columnAmount);
+    else
+        for (i = 0; i < columnAmount; i++)
+        {
+            selectedColumns[i] = searchColumn(table, selectBody->columnsName[i], NULL);
+            if (selectedColumns[i] == NULL)
+                return -1;
+        }
+    for (i = 0; i < columnAmount; i++)
+    {
+        columnType[i] = selectedColumns[i]->columnType;
+        if (sortByWhich < 0 && !strcasecmp(selectedColumns[i]->columnName, selectBody->sortColumnName))
+            sortByWhich = i;
+    }
+    if (sortByWhich < 0)
+        return -1;
+
+    ColumnValue *resultColumnsValue[columnAmount*ROW_MAX];
+    int rowAmount;
+    rowAmount = getResultColumnValue(table, selectedColumns, columnAmount, resultColumnsValue,
+                                     selectBody->condition, 0);
+
+    if (rowAmount == -1)
+        return -1;
+
+    outputResult(resultColumnsValue, columnType, columnAmount, rowAmount, sortByWhich,
+                 selectBody->sortOrder);
+    return 0;
+}
+static void outputResult(ColumnValue **columnsValue, COLUMN_TYPE *columnType, int columnAmount,
+                        int rowAmount, int sortByWhich, SORT_ORDER sortOrder)
+{
+    char *stringArray[rowAmount*columnAmount];
+    int i, j;
+
+
+    for (i = 0; i < rowAmount; i++)
+    {
+        for (j = 0; j < columnAmount; j++)
+        {
+            stringArray[i*columnAmount+j] = calloc(LENGTH, sizeof(char));
+            assignString(stringArray[i*columnAmount+j], columnsValue[i*columnAmount+j], columnType[j]);
+        }
+    }
+    sortStringArray(stringArray, rowAmount, columnAmount, sortByWhich, sortOrder);
+
+    char *stringTemp;
+    for (i = 0; i < rowAmount; i++)
+    {
+        for (j = 0; j < columnAmount; j++)
+        {
+            stringTemp = stringArray[i*columnAmount+j];
+            if (containsBlank(stringTemp))
+                printf("\"%s\"", stringTemp);
+            else
+                printf("%s", stringTemp);
+            if (j != columnAmount)
+                putchar(',');
+        }
+        putchar('\n');
+    }
+    for (i = 0; i < rowAmount*columnAmount; i++)
+        free(stringArray[i]);
+}
+static void assignString(char *string, ColumnValue *columnValue, COLUMN_TYPE columnType)
+{
+    if (columnValue->hasData)
+    {
+        switch (columnType)
+        {
+        case INT:
+            sprintf(string, "%d", columnValue->data.intValue);
+            break;
+        case FLOAT:
+            sprintf(string, "%.2f", columnValue->data.floatValue);
+            break;
+        case TEXT:
+            strncpy(string, columnValue->data.textValue, LENGTH-1);
+            break;
+        case NONE:
+            strcpy(string, "#");
+            break;
+        default:
+            break;
+        }
+    } else {
+        strcpy(string, "#");
+    }
+
+}
+static void sortStringArray(char **stringArray, int rowAmount, int columnAmount, int sortByWhich,
+                       SORT_ORDER sortOrder)
+{
+    if (sortOrder == NOTSORT)
+        return ;
+
+    int i, j;
+    int finalOrder[rowAmount];
+    for (i = 0; i < rowAmount; i++)
+        finalOrder[i] = i;
+
+    getFinalOrder(stringArray+sortByWhich, rowAmount, columnAmount, sortOrder, finalOrder);
+
+    char *stringTemp[rowAmount*columnAmount];
+    int finalRow;
+    for (i = 0; i < rowAmount*columnAmount; i++)
+        stringTemp[i] = stringArray[i];
+    for (i = 0; i < rowAmount; i++)
+    {
+        for (j = 0; j < columnAmount; j++)
+        {
+            finalRow = finalOrder[i];
+            stringArray[i*columnAmount+j] = stringTemp[finalRow*columnAmount+j];
+            //printf("\n%s", stringArray[i*columnAmount+j]);
+        }
+    }
+}
+static void getFinalOrder(char **string, int rowAmount, int columnAmount, SORT_ORDER sortOrder,
+                          int *finalOrder)
+{
+    int i, j;
+    int (*compare)(const char *, const char *);
+    int swapTemp;
+    char *stringSwapTemp;
+    char *sortedStrings[rowAmount];
+
+    if (sortOrder == DESC)
+        compare = descOrderCompare;
+    else
+        compare = incrOrderCompare;
+    for (i = 0; i < rowAmount; i++)
+        sortedStrings[i] = string[i*columnAmount];
+
+    for (i = 0; i < rowAmount; i++)
+    {
+        for (j = 0; j < rowAmount - 1; j++)
+        {
+//            for (k = 0; k < rowAmount; k++)
+//                printf("\n%d\t%s", finalOrder[k], sortedStrings[k]);
+            if (compare(sortedStrings[j], sortedStrings[j+1]) > 0)
+            {
+                swapTemp = finalOrder[j];
+                finalOrder[j] = finalOrder[j+1];
+                finalOrder[j+1] = swapTemp;
+
+                stringSwapTemp = sortedStrings[j];
+                sortedStrings[j] = sortedStrings[j+1];
+                sortedStrings[j+1] = stringSwapTemp;
+            }
+        }
+    }
+}
+static int descOrderCompare(const char *elem1, const char *elem2)
+{
+    if (!strcmp(elem1, "#"))
+        return 1;
+    if (!strcmp(elem2, "#"))
+        return -1;
+    return -strcmp(elem1, elem2);
+}
+static int incrOrderCompare(const char *elem1, const char *elem2)
+{
+    if (!strcmp(elem1, "#"))
+        return 1;
+    if (!strcmp(elem2, "#"))
+        return -1;
+    return strcmp(elem1, elem2);
+}
+static int containsBlank(char *string)
+{
+    char c;
+    int i = 0;
+    while ((c = string[i++]) != '\0')
+        if (c == ' ')
+            return 1;
+    return 0;
+}
 static int getColumnsValue(Table *table, char **columnsName, ColumnValue **columnValue,
                     COLUMN_TYPE *columnType, int size)
 {
@@ -161,6 +423,8 @@ static int getColumnsValue(Table *table, char **columnsName, ColumnValue **colum
 static int isSameValue(ColumnValue *columnValue, Value oldValue)
 {
     int result = 0;
+    if (columnValue->hasData == 0)
+        return 0;
     switch (oldValue.columnType)
     {
     case INT:

@@ -2,8 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Database.h"
-
-#define SIZE 20
+#define OUTPUT_MAX 20
 
 static int descOrderCompare(const void *elem1, const void *elem2);
 static int incrOrderCompare(const void *elem1, const void *elem2);
@@ -12,15 +11,15 @@ static void sortStringArray(char **stringArray, int size,
 static void outputStringArray(char **stringArray, int size);
 static void freeStringArray(char **stringArray, int size);
 static char *enumToString(COLUMN_TYPE columnType);
-static void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType);
+ void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType);
 
 extern Database *head;
 extern Database *currentDatabase;
 
 int showDatabase(SORT_ORDER sortOrder)
 {
-    char *databasesName[SIZE];
-    memset(databasesName, 0, SIZE*sizeof(char *));
+    char *databasesName[OUTPUT_MAX];
+    memset(databasesName, 0, OUTPUT_MAX*sizeof(char *));
     Database *databaseTra = head;
     int count = 0;
 
@@ -53,8 +52,8 @@ int showTable(char *databaseName, SORT_ORDER sortOrder)
     if (database == NULL)
         return -1;
 
-    char *tablesName[SIZE];
-    memset(tablesName, 0, SIZE*sizeof(char *));
+    char *tablesName[OUTPUT_MAX];
+    memset(tablesName, 0, OUTPUT_MAX*sizeof(char *));
     Table *tableTra = database->tableHead;
     if (tableTra == NULL)
     {
@@ -80,8 +79,8 @@ int showColumn(char *tableName, SORT_ORDER sortOrder)
     if (table == NULL)
         return -1;
 
-    char *columnsName[SIZE];
-    memset(columnsName, 0, SIZE*sizeof(char *));
+    char *columnsName[OUTPUT_MAX];
+    memset(columnsName, 0, OUTPUT_MAX*sizeof(char *));
     Column *columnTra = table->columnHead;
     if (columnTra == NULL)
     {
@@ -128,8 +127,8 @@ int showAllColumnValue(char *tableName)
     if (table == NULL)
         return -1;
 
-    Column *allColumn[SIZE];
-    int length = getAllColumn(table, allColumn, SIZE);
+    Column *allColumn[OUTPUT_MAX];
+    int length = getAllColumn(table, allColumn, OUTPUT_MAX);
     if (length <= 0)
         return -1;
     ColumnValue *columnValueTra[length];
@@ -216,7 +215,7 @@ static char *enumToString(COLUMN_TYPE columnType)
         return "NONE";
     }
 }
-static void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType)
+ void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType)
 {
     Data data = columnValue->data;
     if (columnValue->hasData)
