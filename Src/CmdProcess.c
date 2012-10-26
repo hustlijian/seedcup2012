@@ -1296,6 +1296,18 @@ int selectCmd(int isInner, Value *resultValue)
 		if (setWhere(&conditon))
 			return -1;
 		selectBody.condition = &conditon; //设置选择条件
+		if (!isInner)//外层
+		{
+			scaner();
+			if (syn==SYN_ORDER){
+				if (setSort(&sortOrder, sortColumnName))
+					return -1;
+				scaner();
+			}else
+				sortOrder = NOTSORT;
+			if (syn!=SYN_SEMICOLON)//end
+				return -1;
+		}
 	} else if (syn == SYN_ORDER)//order
 	{
 		selectBody.condition = NULL;//没有条件
@@ -1306,18 +1318,6 @@ int selectCmd(int isInner, Value *resultValue)
 		sortOrder  = NOTSORT;
 	}
 
-	if (!isInner)//外层
-	{
-		scaner();
-		if (syn==SYN_ORDER){
-			if (setSort(&sortOrder, sortColumnName))
-				return -1;
-			scaner();
-		}else
-			sortOrder = NOTSORT;
-		if (syn!=SYN_SEMICOLON)//end
-			return -1;
-	}
 	//todo:select
 	selectBody.tableName = tableName;
 	if (sortOrder == NOTSORT)
