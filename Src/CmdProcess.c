@@ -925,7 +925,6 @@ int updateCmd()
       return -1;
     for (i=0,scaner();syn==SYN_COMMA;scaner())
     {
-      scaner();
       if (getValue(&newValues[++i]))
         return -1;
     }
@@ -994,7 +993,7 @@ int insertCmd()
 	char *columns[COL_NUM];
 	Value values[COL_NUM];
 	int amount, i;
-	int colFlag=0;
+	int colFlag=-1;
 
 	scaner();
 	if (syn!=SYN_INTO)//into
@@ -1043,10 +1042,11 @@ int insertCmd()
 			return -1;
 	} else
 		return -1;
-	if (amount==0)
+	if (amount==-1)
 	{
 		if (getValue(&values[0]))
 				return -1;
+		amount = 0;
 	}else{
 		scaner();
 		if (syn!=SYN_PAREN_LEFT)//(
