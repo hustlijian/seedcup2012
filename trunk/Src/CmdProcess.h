@@ -77,6 +77,14 @@
 int mystrcmp(const char *str1, const char *str2);
 //获取字符串中词的类型
 int getTypeNum(char *str);
+//获取值类型
+COLUMN_TYPE getValueType(char *str);
+//获取操作符类型
+OPERATOR getOptType(char *str);
+//判断是否是操作符
+int isLgcExpOpt(char *str);
+//获取逻辑类型
+LOGIC getLogicType(char *str);
 //每次扫描获得一个词，和他的种别码
 void scaner();
 //判断是否是关键字
