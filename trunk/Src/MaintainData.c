@@ -146,6 +146,9 @@ int insert(char *tableName, char **columnsName, Value *values, int amount)
 
     int insertedColumnPos[amount];
     int hasBadColumnName = 0;
+    int i;
+    for (i = 0; i < amount; i++)
+        insertedColumnPos[i] = i;
 
     if (columnsName != NULL)
         hasBadColumnName = getInsertedColumnPos(table, insertedColumnPos, columnsName,
