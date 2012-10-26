@@ -328,12 +328,12 @@ static int betweenOperation(Data data, Value *value)
     switch (value[0].columnType)
     {
     case INT:
-        result = (data.intValue > value[0].columnValue.intValue &&
-                  data.intValue < value[1].columnValue.intValue);
+        result = (data.intValue > value[1].columnValue.intValue &&
+                  data.intValue < value[0].columnValue.intValue);
         break;
     case FLOAT:
-        result = (data.floatValue > value[0].columnValue.floatValue &&
-                  data.floatValue < value[1].columnValue.floatValue);
+        result = (data.floatValue > value[1].columnValue.floatValue &&
+                  data.floatValue < value[0].columnValue.floatValue);
         break;
     default:
         break;
@@ -360,7 +360,7 @@ static int likeOperation(Data data, Value *value)
 }
 static int matchRegex(const char *string, const char *pattern)
 {
-    const char *begin = pattern;
+    //const char *begin = pattern;
     if (*pattern == 0)
         return 1;
     if (*string == 0)
