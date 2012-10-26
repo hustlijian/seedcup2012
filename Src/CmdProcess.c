@@ -371,7 +371,7 @@ int alterAddCmd(char *tableName)
 	strcpy(columnName,word);
 
 	scaner();
-	if(syn>=SYN_INT&&syn<=SYN_FLOAT)  //指定类型26,27,28
+	if(syn>=SYN_INT&&syn<=SYN_TEXT)  //指定类型26,27,28
 		columnType = syn-SYN_INT;
 	else if (syn==SYN_ELSE) 
 		columnType = NONE;
