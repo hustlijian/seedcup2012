@@ -41,11 +41,16 @@ int main(int argc, char* argv[])
 	{
 		for (i=0,c=getchar();c!=';'&&c!=EOF;c=getchar())
 			str[i++]=c;
-		str[i]='\0';
-
+		str[i]=';';
+		str[i+1] = '\0';
+		if (c == EOF) {
+			if (i) //结束非空
+				printf("error\n");
+			break;
+		}
 		if(processCmd(str)) //返回为非零报错
 			printf("error\n");
-	} while (c!=EOF);
+	} while (1);
 	
 	return 0;
 }

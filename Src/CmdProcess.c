@@ -256,7 +256,7 @@ int checkName(char *str)
 int checkEnd()
 {
 	scaner();
-	if (syn==0 && strlen(word)==0)
+	if (syn==SYN_SEMICOLON)
 		return 1;
 	return 0;
 }
@@ -375,7 +375,7 @@ int alterAddCmd(char *tableName)
 	scaner();
 	if(syn>=SYN_INT&&syn<=SYN_TEXT)  //指定类型26,27,28
 		columnType = syn-SYN_INT;
-	else if (syn==SYN_ELSE) 
+	else if (syn==SYN_SEMICOLON) 
 		columnType = NONE;
 	else
 		return -1;
@@ -428,7 +428,7 @@ int alterAlterCmd(char *tableName)
 	scaner();
 	if(syn>=SYN_INT&&syn<=SYN_TEXT)  //指定类型26,27,28
 		columnType = syn-SYN_INT;
-	else if (syn==SYN_ELSE) 
+	else if (syn==SYN_SEMICOLON) 
 		columnType = NONE;
 	else
 		return -1;
@@ -522,7 +522,7 @@ int dropCmd()
 	strcpy(databaseName, word);
 
 	scaner();
-	if (syn==SYN_ELSE)
+	if (syn==SYN_SEMICOLON)
 		return drop(databaseName, NULL);
 	if (syn==SYN_IDENTIFIER){
 		if (!checkName(word)) //名，英文字符，下划线
@@ -606,7 +606,7 @@ int renameCmd()
 int  checkSort(SORT_ORDER *sortOrder)
 {
 	scaner();
-	if (syn==SYN_ELSE) //NOSORT
+	if (syn==SYN_SEMICOLON) //NOSORT
 		*sortOrder = NOTSORT;
 	else if (syn==SYN_ORDER)//ORDER
 	{
@@ -1042,7 +1042,7 @@ int insertCmd()
 			return -1;
 	} else
 		return -1;
-	if (amount==-1)
+	if (amount==0)
 	{
 		if (getValue(&values[0]))
 				return -1;
@@ -1206,7 +1206,6 @@ int setWhere(Condition *condition)
 //检查是否有or,and
 int checkLogic()
 {
-	int i;
 	char *temp = p;
 	
 	scaner();
@@ -1289,7 +1288,7 @@ int selectCmd(int isInner, Value *resultValue)
 			scaner();
 		}else
 			sortOrder = NOTSORT;
-		if (syn!=SYN_ELSE)//end
+		if (syn!=SYN_SEMICOLON)//end
 			return -1;
 	}
 	//todo:select
