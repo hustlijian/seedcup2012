@@ -173,7 +173,7 @@ static int handleInnerSelect(SelectBody *selectBody)
                                      selectBody->condition, 1);
     if (rowAmount == -1)
         return -1;
-    if (rowAmount == 0)
+    if (rowAmount != 1)
     {
         selectBody->resultValue->columnType = EMPTY;
         return 0;
@@ -221,6 +221,12 @@ static int handleOuterSelect(SelectBody *selectBody)
     COLUMN_TYPE columnType[columnAmount];
     int i;
     int sortByWhich = -1;
+    if (selectBody->sortColumnName == NULL)
+    {
+        sortByWhich = 0;
+        selectBody->sortOrder = INCR;
+    }
+
 
     if (selectBody->columnsName == NULL)
         getAllColumn(table, selectedColumns, columnAmount);
@@ -390,9 +396,9 @@ static int descOrderCompare(const char *elem1, const char *elem2)
 static int incrOrderCompare(const char *elem1, const char *elem2)
 {
     if (!strcmp(elem1, "#"))
-        return 1;
-    if (!strcmp(elem2, "#"))
         return -1;
+    if (!strcmp(elem2, "#"))
+        return 1;
     return strcmp(elem1, elem2);
 }
 static int containsBlank(char *string)
