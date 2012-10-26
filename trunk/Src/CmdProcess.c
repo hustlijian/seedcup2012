@@ -292,8 +292,8 @@ int createTableCmd()
 		return -1;
 	strcpy(tableName,word);
 
-	scaner();
-	if (syn == 0)//无列表
+
+	if (checkEnd())//无列表
 	{
 		if(createTable(tableName,NULL, NULL, 0))
 			return -1;
@@ -306,6 +306,8 @@ int createTableCmd()
 	if (syn == SYN_PAREN_RIGHT)//')'
 	{
 		if(createTable(tableName,NULL, NULL, 0))
+			return -1;
+		if (!checkEnd())
 			return -1;
 		return 0;
 	}
