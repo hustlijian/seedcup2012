@@ -256,7 +256,7 @@ int checkName(char *str)
 int checkEnd()
 {
 	scaner();
-	if (syn==0 && p==NULL)
+	if (syn==0 && strlen(word)==0)
 		return 1;
 	return 0;
 }
