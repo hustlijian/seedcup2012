@@ -1065,6 +1065,8 @@ int insertCmd()
 		}
 		if (!colFlag&&i!=amount)//columns == values
 			return -1;
+		else 
+			amount = i;
 		if (syn!=SYN_PAREN_RIGHT)//)
 			return -1;
 	}
