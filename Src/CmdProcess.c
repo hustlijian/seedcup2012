@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include "expression.h"
 #include "CmdProcess.h"
 #include "LogicExpStruct.h"
 
