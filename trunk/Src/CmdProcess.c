@@ -1151,32 +1151,35 @@ int setWhere(Condition *condition)
 		{
 		case SYN_EQUAL://==
 			condition->operator = EQ;
-			//fall through
+			break;
 		case SYN_NOT_EQUAL://~=
 			condition->operator = NE;
-			//fall through
+			break;
 		case SYN_GREATER://>
 			condition->operator = GT;
-			//fall through
+			break;
 		case SYN_LESS://<
 			condition->operator = LT;
-			//fall through
+			break;
 		case SYN_MORE_EQUAL://>=
 			condition->operator = GET;
-			//fall through
+			break;
 		case SYN_LESS_EQUAL://<=
 			condition->operator = LET;
-			//getvalue
-			if (getValue(&(condition->value)))
-				return -1;
 			break;
 		case SYN_LIKE://like
 			condition->operator = LIKE;
-			if(getValue(&(condition->value)))
-				return -1;
 			break;
 		case SYN_BETWEEN://between
 			condition->operator = BETWEEN;
+			break;
+		default:
+			return -1;
+			break;
+		}
+		condition->logic = NOLOGIC;
+		if (condition->operator == BETWEEN)//between[value1, value2]
+		{
 			scaner();
 			if (syn!=SYN_BRACKET_LEFT)//[
 				return -1;
@@ -1190,12 +1193,13 @@ int setWhere(Condition *condition)
 			scaner();
 			if (syn!=SYN_BRACKET_RIGHT)//]
 				return -1;
-			break;
-		default:
-			return -1;
-			break;
+		} else
+		{
+			//getvalue
+			if (getValue(&(condition->value)))
+				return -1;
 		}
-		condition->logic = NOLOGIC;
+		condition->next = NULL;
 	}
 	return 0;
 }
@@ -1203,15 +1207,12 @@ int setWhere(Condition *condition)
 int checkLogic()
 {
 	int i;
-	for (i=0;p[i];i++){//check and, or
-		if (p[i]=='o'||p[i]=='O')
-			if (p[i+1]=='r'||p[i+1]=='R')
-				return 1;
-		if (p[i]=='a'||p[i]=='A')
-			if (p[i+1]=='n'||p[i+1]=='N')
-				if (p[i+2]=='d'||p[i+2]=='D')
-					return 1;
-	}
+	char *temp = p;
+	
+	scaner();
+	p = temp;
+	if (syn == SYN_PAREN_LEFT)//(
+		return 1;
 	return 0;//没有
 }
 //处理select命令
@@ -1224,14 +1225,15 @@ int selectCmd(int isInner, Value *resultValue)
 	int columnAmount, i;
 	
 	char sortColumnName[NAME_LENGHT];
-	SORT_ORDER sortOrder;
+	SORT_ORDER sortOrder = NOTSORT;
 	Condition conditon;
-	Condition *p;
+	Condition *temp;
 
 	scaner();
 	if (syn==SYN_MULT) //*
 	{
 		selectBody.columnsName = NULL;
+		selectBody.columnAmount = 0;
 		scaner();
 		if (syn!=SYN_FROM)//from
 			return -1;
@@ -1267,11 +1269,16 @@ int selectCmd(int isInner, Value *resultValue)
 	{	
 		if (setWhere(&conditon))
 			return -1;
+		selectBody.condition = &conditon; //设置选择条件
 	} else if (syn == SYN_ORDER)//order
 	{
+		selectBody.condition = NULL;//没有条件
 		if (setSort(&sortOrder, sortColumnName))
 			return -1;
-	} 
+	} else {
+		selectBody.condition = NULL;
+		sortOrder  = NOTSORT;
+	}
 
 	if (!isInner)//外层
 	{
@@ -1280,29 +1287,32 @@ int selectCmd(int isInner, Value *resultValue)
 			if (setSort(&sortOrder, sortColumnName))
 				return -1;
 			scaner();
-		}
+		}else
+			sortOrder = NOTSORT;
 		if (syn!=SYN_ELSE)//end
 			return -1;
 	}
 	//todo:select
 	selectBody.tableName = tableName;
-	selectBody.sortColumnName = sortColumnName;
+	if (sortOrder == NOTSORT)
+		selectBody.sortColumnName = NULL;
+	else 
+		selectBody.sortColumnName = sortColumnName;
 	selectBody.sortOrder = sortOrder;	
 	selectBody.isInner = isInner;
 	selectBody.resultValue = resultValue;
-	selectBody.condition = &conditon;
 
-	if (!isInner && selectBody.resultValue->columnType == EMPTY)//外层，且内部返回值空
+	if (select(&selectBody))
+		return -1;
+	if (!isInner && (selectBody.resultValue != NULL)&& selectBody.resultValue->columnType == EMPTY)//外层，且内部返回值空
 	{
 		printf("$\n");
 		return 0;
-	}
-	if (select(&selectBody))
-		return -1;
+	}	
 	if (resultValue!=NULL)
 		freeValue(resultValue);
-	for (p=selectBody.condition; p!=NULL; p=p->next)
-		freeValue(&(p->value));
+	for (temp=selectBody.condition; temp!=NULL; temp=temp->next)
+		freeValue(&(temp->value));
 	
 	return 0;
 }
