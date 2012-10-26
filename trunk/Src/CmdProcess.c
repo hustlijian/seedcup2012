@@ -964,6 +964,9 @@ int logicalExpProc(char *expStr, Condition **expList)
 	Condition *locHeadList, *locTailList;
 
 	locHeadList = (Condition *)malloc(sizeof(Condition));
+	locTailList = locHeadList;
+	locTailList->next = NULL;
+	*expList = locHeadList;
 	//e = (char *)calloc(NAME_MAX, sizeof(char));
 	if(logicalExpStkInit(&lExpTmpStk))
 		return -1;
@@ -987,35 +990,44 @@ int logicalExpProc(char *expStr, Condition **expList)
 				logicalExpStkPush(&lExpTmpStk, word, 1);
 				break;
 			case SYN_PAREN_RIGHT:
-				logicalExpStkGetTop(&lExpTmpStk, &e, &w);
+				if (logicalExpStkGetTop(&lExpTmpStk, &e, &w))
+					return -1;
 				while(strcmp(e, "("))
 				{
-					logicalExpStkPop(&lExpTmpStk, &e, &w);
+					if(logicalExpStkPop(&lExpTmpStk, &e, &w))
+						return -1;
 					logicalExpStkPush(&lExpPloStk, e, 2);
-					logicalExpStkGetTop(&lExpTmpStk, &e, &w);
+					if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
+						return -1;
 				}
-				logicalExpStkPop(&lExpTmpStk, &e, &w);
+				if(logicalExpStkPop(&lExpTmpStk, &e, &w))
+					return -1;
 				break;
 			case SYN_OR:
 			case SYN_AND:
-				for (logicalExpStkGetTop(&lExpTmpStk, 
-					&e, &w); strcmp(e, 
-					"$"); logicalExpStkGetTop(&lExpTmpStk,
-					&e, &w))
+				for (; strcmp(e, "$");)
 				{
+					if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
+						return -1;
 					if (!strcmp(e, "("))
 						break;
 					else
 					{
-						logicalExpStkGetTop(&lExpTmpStk, &e, &w);
-						logicalExpStkGetTop(&lExpPloStk, &e, &w);
+						if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
+							return -1;
+						if(logicalExpStkGetTop(&lExpPloStk, &e, &w))
+							return -1;
 						while (w >= 3 && strcmp(e, "("))
 						{
-							logicalExpStkPop(&lExpTmpStk, &e, &w);
+							if(logicalExpStkPop(&lExpTmpStk, &e, &w))
+								return -1;
 							logicalExpStkPush(&lExpPloStk, e, 3);
-							logicalExpStkGetTop(&lExpTmpStk, &e, &w);
+							if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
+								return -1;
 						}
 					}
+					if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
+						return -1;
 				}
 				logicalExpStkPush(&lExpTmpStk, word, 3);
 				break;
@@ -1028,9 +1040,12 @@ int logicalExpProc(char *expStr, Condition **expList)
 				SYN_BRACKET_RIGHT != syn && SYN_COMMA != syn)
 				logicalExpStkPush(&lExpPloStk, word, 4);
 	}
-	logicalExpStkPop(&lExpTmpStk, &e, &w);
+	if(logicalExpStkPop(&lExpTmpStk, &e, &w))
+		return -1;
 	while (strcmp(e, "$"))	//若lExpTmpStk不空，将剩余操作符弹出到lExpPloStk
 	{
+		if (!strcmp(e, "(") || !strcmp(e, ")"))
+			return -1;
 		logicalExpStkPush(&lExpPloStk, e, w);
 		if (logicalExpStkPop(&lExpTmpStk, &e, &w))
 			return -1;	
@@ -1045,7 +1060,6 @@ int logicalExpProc(char *expStr, Condition **expList)
 		logicalExpStkPush(&lExpRevPloStk, e, w);
 	}
 	//处理逆波兰式，写入链表
-	locTailList = locHeadList;
 	do
 	{
 		logicalExpStkPop(&lExpRevPloStk, &e, &w);
