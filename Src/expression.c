@@ -13,7 +13,7 @@ void Insert(SeqList *L, char a, int i)
 	if(a == '.') 
 	{
 		jTemp = i;
-		L->List[jTemp] = 48;
+		L->List[jTemp] = 48;	//0
 	}
 	kTemp = i;
 }
