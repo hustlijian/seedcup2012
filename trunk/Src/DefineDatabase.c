@@ -144,7 +144,7 @@ int addColumn(char *tableName, char *columnName,
     }
 
     ColumnValue *columnValueTra = columnTraverse->columnValueHead;
-    ColumnValue *newColumnValue;
+    ColumnValue *newColumnValue = NULL;
     ColumnValue *prior;
 
     while (columnValueTra != NULL)
@@ -160,8 +160,8 @@ int addColumn(char *tableName, char *columnName,
         prior = newColumnValue;
         columnValueTra = columnValueTra->next;
     }
-    newColumnValue->next = NULL;
-
+    if (newColumnValue != NULL)
+        newColumnValue->next = NULL;
     return 0;
 }
 
@@ -213,7 +213,7 @@ int alterColumn(char *tableName, char *columnName,
         alterData = alterToText;
         break;
     default:  //NONE
-        break;
+        return -1;
     }
     alterColumnValue(column->columnValueHead, alterData, oldColumnType);
     column->columnType = newColumnType;
