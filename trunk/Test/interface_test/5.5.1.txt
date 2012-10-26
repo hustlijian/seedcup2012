@@ -1,0 +1,57 @@
+select lastname, firstname from persons;
+select lastname, firstname, goodname from persons;
+select lastname from persons;
+select lastname, firstname  persons;
+select lastname firstname from persons;
+select 1234, firstname from persons;
+select lastname, 1234 from persons;
+select lastname, firstname from 32423;
+select 1234, 413 from 134;
+select lastname, firstname From persons;
+
+select * from persons;
+select * from 2134;
+select * from persons;
+
+select * from persons where city == 'Beijing';
+select * from persons wHere city == 'Beijing';
+select * from persons where city ~= 'Beijing';
+select * from persons where city > 'Beijing';
+select * from persons where city < 'Beijing';
+select * from persons where city >= 'Beijing';
+select * from persons where city <= 'Beijing';
+select * from persons where city like [Beijing];
+select * from persons where city like [Be?jing];
+select * from persons where city like [Be*jing];
+select * from persons where age == 12;
+select * from persons where age ~= 12;
+select * from persons where age > 12;
+select * from persons where age < 12;
+select * from persons where age >= 12;
+select * from persons where age <= 12;
+select * from persons where age between[ 12, 23];
+select * from persons where salary == 12.23;
+select * from persons where salary ~= 12.23;
+select * from persons where salary < 12.23;
+select * from persons where salary > 12.23;
+select * from persons where salary <= 12.23;
+select * from persons where salary >= 12.23;
+select * from persons where salary between[12.23,123.2];
+
+select * from persons where salary = 12.23;
+select * from persons where salary %= 12.23;
+select * from persons where salary -= 12.23;
+
+select * from persons where age == 12 order by company desc;
+select * from persons where age ~= 12 order by company incr; 
+select * from persons where age > 12 order by company incr;
+select * from persons where age < 12 order by company desc;
+select * from persons where age >= 12 order by company desc;
+select * from persons where age <= 12 order by company incr;
+select * from persons where age between[ 12, 23] order by company desc;
+
+select * from persons where age == 12 order company desc;
+select * from persons where age == 12 order by  desc;
+select * from persons where age == 12 order by company nosort;
+
+select * from persons where city == 'hk' order by age desc;

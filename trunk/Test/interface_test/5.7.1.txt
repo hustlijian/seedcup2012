@@ -1,0 +1,2 @@
+select name from world where population > (select population from bbc where name == 'Russia');
+insert into name values (select name from person where city == 'wuhan');

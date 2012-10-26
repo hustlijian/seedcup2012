@@ -1,0 +1,9 @@
+drop database_name;
+drop ;
+drop 1341234;
+
+drop database_name table_name;
+drop database_name 1234;
+drop 1234 table_name;
+drop 234 343;
+drop database_name table______name;

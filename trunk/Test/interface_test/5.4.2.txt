@@ -1,0 +1,30 @@
+create table seedcup(name text);
+create tAble seedcup(name text);
+create table seed_cup(name text);
+create table 123432(name text);
+create table !@#$%%2(name text);
+create table seedcup();
+create table seedcup;
+create table seedcup(name );
+create table seedcup(create text);
+create table seedcup(1442 text);
+create table seedcup(cre_ate text);
+create table seedcup(^$#$#@ text);
+create table seedcup(
+  name text,
+  iValue int
+);
+create table seedcup(
+  name text,
+  iValue int,
+);
+create table seedcup(
+  name text,
+  iValue int,
+  fValue float
+);
+create table seedcup(
+  name ,
+  iValue ,
+  fValue float
+);

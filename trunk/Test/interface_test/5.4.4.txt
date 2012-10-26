@@ -1,0 +1,6 @@
+truncate table table_name;
+truncate tables table_name;
+truncate Table table_name;
+truncate table 123432;
+truncate table ;
+truncate table_name;

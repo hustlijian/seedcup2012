@@ -1,0 +1,13 @@
+insert into table_name values ('valueA', 'valueB');
+insert into table_name values (123, 1234);
+insert into table_name values (123.23, 3423.22);
+
+insert into table_name(columnA, columnB) values ('valueA', 'valueB');
+insert into table_name(columnA, columnB) values (34, 23);
+insert into table_name columnA values 'valueA';
+insert into table_name columnA values 123;
+insert into table_name columnA values 1234.23;
+
+insert into table_name values (, 'valueB',,'ValueD');
+insert into table_name(cA, CB, CC, CD) values (, 'valueB',,'ValueD');
+insert into table_name(cA, CB, CC, CD) values (, 123,,23.32);

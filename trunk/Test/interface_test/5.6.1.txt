@@ -1,0 +1,24 @@
+show databases;
+show table;
+show database_name table;
+show column;
+show table_name column;
+show asdf;
+show 1234;
+
+show database_name table;
+show database_name TABLE;
+
+show databases order by desc;
+show table order by desc;
+show database_name table order by desc;
+show column order by desc;
+show table_name column order by desc; 
+show asdf order by desc;
+show 1234 order by desc;
+
+show database_name table order by desc;
+show database_name TABLE order by desc;
+show databases order by desc;
+show databases order by incr;
+show databases order by ;

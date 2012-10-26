@@ -1,0 +1,13 @@
+---------关键字不区分大小写----------------------;
+create database seedCup;
+cReATe DataBaSe SeedCup;
+-----------每一句分号分割------------------------;
+;
+-------列名，表名，库名不能是关键字，空格--------;
+create database create;
+create table create
+(
+  columna text
+);
+create table seedcup(create text);
+create table seedcup(columna text);
