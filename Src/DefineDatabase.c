@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include "Database.h"
 
 static void freeAllColumnValue(ColumnValue *columnValue, int isTextType);
@@ -114,7 +115,6 @@ int addColumn(char *tableName, char *columnName,
     Table *tableTraverse = searchTable(tableName);
     if (tableTraverse == NULL)   //找到结尾处仍未找到
         return -1;
-
     Column *newColumn = (Column *)calloc(1, sizeof(Column));
     strncpy(newColumn->columnName, columnName, LENGTH-1);
     newColumn->columnType = columnType;
@@ -395,6 +395,8 @@ static void freeAllColumn(Column *column, int isFreeColumn)
     Database *database = searchDatabase(databaseName, &prior);
     if (database == NULL)
         return -1;
+    if (currentDatabase == database)
+        currentDatabase = NULL;
     if (prior == head)
         head = database->next;
     else
