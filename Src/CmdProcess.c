@@ -1062,14 +1062,16 @@ int logicalExpProc(char *expStr, Condition **expList)
 	//处理逆波兰式，写入链表
 	do
 	{
-		logicalExpStkPop(&lExpRevPloStk, &e, &w);
+		if(logicalExpStkPop(&lExpRevPloStk, &e, &w))
+			return -1;
 		if (SYN_AND == getTypeNum(e) || 
 			SYN_OR == getTypeNum(e) || 
 			!strcmp(e, "$"))
 		{
 			locTailList->logic = getLogicType(e);		//与或逻辑
 
-			logicalExpStkPop(&lExpRevPloStk2, &e, &w);	//第一个值
+			if(logicalExpStkPop(&lExpRevPloStk2, &e, &w))//第一个值
+				return -1;	
 			locTailList->value.columnType = getValueType(e);
 			switch(getValueType(e))
 			{
@@ -1083,7 +1085,8 @@ int logicalExpProc(char *expStr, Condition **expList)
 				locTailList->value.columnValue.textValue = e;
 				break;
 			}
-			logicalExpStkPop(&lExpRevPloStk2, &e, &w);
+			if(logicalExpStkPop(&lExpRevPloStk2, &e, &w))
+				return -1;
 			if (isLgcExpOpt(e))		//第二个值，若有
 			{
 				locTailList->value2.columnType = getValueType(e);
@@ -1099,13 +1102,15 @@ int logicalExpProc(char *expStr, Condition **expList)
 					locTailList->value2.columnValue.textValue = e;
 					break;
 				}
-				logicalExpStkPop(&lExpRevPloStk2, &e, &w);
+				if(logicalExpStkPop(&lExpRevPloStk2, &e, &w))
+					return -1;
 			}
 			else
 				locTailList->value2.columnType = EMPTY;
 			locTailList->operator = getOptType(e);//操作符
 
-			logicalExpStkPop(&lExpRevPloStk2, &e, &w);	//列名
+			if(logicalExpStkPop(&lExpRevPloStk2, &e, &w))//列名
+				return -1;	
 			strcpy(locTailList->columnName, e);
 
 			locTailList->next = (Condition *)malloc(sizeof(Condition));
