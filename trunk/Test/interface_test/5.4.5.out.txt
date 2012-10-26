@@ -1,0 +1,18 @@
+use database_name
+function: use
+databaseName:database_name
+
+use databaseName
+function: use
+databaseName:databaseName
+
+use 12343
+error
+
+use #$%@#$%
+error
+
+UsE database_name
+function: use
+databaseName:database_name
+

@@ -1,0 +1,47 @@
+rename table old_name new_name
+function: renameTable
+oldName:old_name
+newName:new_name
+
+rename table 123 new_name
+error
+
+rename table old_name 234
+error
+
+rename table 234 1234
+error
+
+rename table one_name 
+error
+
+rename TaBle old_name new_name
+function: renameTable
+oldName:old_name
+newName:new_name
+
+
+rename database old_name new_name
+function: renameDatabase
+oldName:old_name
+newName:new_name
+
+rename database 123 new_name
+error
+
+rename database old_name 1234
+error
+
+rename database 234 4324
+error
+
+rename database old_name 
+error
+
+
+rename databases old_name new_name
+error
+
+rename tablesss old_name new_name
+error
+

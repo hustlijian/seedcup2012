@@ -1,0 +1,33 @@
+delete from table_name where columnA == 'value'
+function:delete
+tableName:table_name
+column:columnA
+columnType = TEXT
+columnValue = value
+
+delete from table_name where columnA == value
+error
+
+delete from 134 where columnA == 'value'
+error
+
+delete from table_name where 234 == 'value'
+error
+
+delete from table_name where columnA == 234
+function:delete
+tableName:table_name
+column:columnA
+columnType = INT
+columnValue = 234
+
+delete from table_name where columnA == 1234.2
+function:delete
+tableName:table_name
+column:columnA
+columnType = FLOAT
+columnValue = 1234.20
+
+delete from table_name  columnA == 'value'
+error
+

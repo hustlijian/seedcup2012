@@ -1,5 +1,6 @@
 update person set (firstName, city) = ('fred', 'wuhan') where lastName == 'john';
 update person set firstName = 'fred' where lastName == 'john';
+update person set (firstName) = ('fred') where lastName == 'john';
 update person set firstName = 23 where lastName == 'john';
 update person set firstName = 123.3 where lastName == 'john';
 update person set firstName = 'fred' where 234 == 'john';

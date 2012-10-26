@@ -1,0 +1,37 @@
+---------关键字不区分大小写----------------------
+error
+
+create database seedCup
+function:createDatabase
+databaseName: seedCup
+
+cReATe DataBaSe SeedCup
+function:createDatabase
+databaseName: SeedCup
+
+-----------每一句分号分割------------------------
+error
+
+
+
+-------列名，表名，库名不能是关键字，空格--------
+error
+
+create database create
+error
+
+create table create
+(
+  columna text
+)
+error
+
+create table seedcup(create text)
+error
+
+create table seedcup(columna text)
+function:createTable
+tableName:seedcup
+columnsName:columna columnType:text 
+columnAmount:1 
+

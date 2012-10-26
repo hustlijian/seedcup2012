@@ -1,0 +1,85 @@
+create table seedcup(name text)
+function:createTable
+tableName:seedcup
+columnsName:name columnType:text 
+columnAmount:1 
+create tAble seedcup(name text)
+function:createTable
+tableName:seedcup
+columnsName:name columnType:text 
+columnAmount:1 
+create table seed_cup(name text)
+function:createTable
+tableName:seed_cup
+columnsName:name columnType:text 
+columnAmount:1 
+create table 123432(name text)
+error
+
+create table !@#$%%2(name text)
+error
+
+create table seedcup()
+function:createTable
+tableName:seedcup
+columnAmount:0 
+create table seedcup
+function:createTable
+tableName:seedcup
+columnAmount:0 
+create table seedcup(name )
+function:createTable
+tableName:seedcup
+columnsName:name columnType:none 
+columnAmount:1 
+create table seedcup(create text)
+error
+
+create table seedcup(1442 text)
+error
+
+create table seedcup(cre_ate text)
+function:createTable
+tableName:seedcup
+columnsName:cre_ate columnType:text 
+columnAmount:1 
+create table seedcup(^$#$#@ text)
+error
+
+create table seedcup(
+  name text,
+  iValue int
+)
+function:createTable
+tableName:seedcup
+columnsName:name columnType:text 
+columnsName:iValue columnType:int 
+columnAmount:2 
+create table seedcup(
+  name text,
+  iValue int,
+)
+error
+
+create table seedcup(
+  name text,
+  iValue int,
+  fValue float
+)
+function:createTable
+tableName:seedcup
+columnsName:name columnType:text 
+columnsName:iValue columnType:int 
+columnsName:fValue columnType:float 
+columnAmount:3 
+create table seedcup(
+  name ,
+  iValue ,
+  fValue float
+)
+function:createTable
+tableName:seedcup
+columnsName:name columnType:none 
+columnsName:iValue columnType:none 
+columnsName:fValue columnType:float 
+columnAmount:3 

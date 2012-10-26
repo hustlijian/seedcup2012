@@ -1,0 +1,113 @@
+alter table persons add birthday TEXT
+function: addColumn
+ columnName:birthday
+columnType:text
+
+alter taBle persons add birthday TEXT
+function: addColumn
+ columnName:birthday
+columnType:text
+
+alter table perSons add birthday TEXT
+function: addColumn
+ columnName:birthday
+columnType:text
+
+alter table persons birthday TEXT
+error
+
+alter table persons add birthday 
+function: addColumn
+ columnName:birthday
+columnType:none
+
+alter table persons add  TEXT
+error
+
+alter table persons add birth_day TEXT
+function: addColumn
+ columnName:birth_day
+columnType:text
+
+alter table per_sons add birthday TEXT
+function: addColumn
+ columnName:birthday
+columnType:text
+
+alter table 1234 add birthday TEXT
+error
+
+alter table persons add 5656 TEXT
+error
+
+alter table persons add birthday NOTKNOWN
+error
+
+alter table persons add birthday text, day int
+error
+
+
+alter table persons alter column birthday int
+function:alterColumn
+columnName:birthday
+newColumnType:int
+
+alter table perSons alter column birthday int
+function:alterColumn
+columnName:birthday
+newColumnType:int
+
+alter table persons alter column birth_day int
+function:alterColumn
+columnName:birth_day
+newColumnType:int
+
+alter table persons  column birthday int
+error
+
+alter table persons alter  birthday int
+error
+
+alter table persons alter column birthday 
+function:alterColumn
+columnName:birthday
+newColumnType:none
+
+alter table persons alter column  int
+error
+
+alter table persons alter column birthday FLOAT
+function:alterColumn
+columnName:birthday
+newColumnType:float
+
+alter table persons alter column birthday NOTKNOWN
+error
+
+alter table persons alter column birthday int, another int
+error
+
+
+alter table persons drop column city
+function: rmColumn
+columnName:city
+
+alter table perSons drop column city
+function: rmColumn
+columnName:city
+
+alter table persons drop  city
+error
+
+alter table persons drop column 
+error
+
+alter table persons drop column city, birthday
+error
+
+alter table persons drop column 234
+error
+
+alter table 23434 drop column 1234324
+error
+

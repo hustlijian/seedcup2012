@@ -5,3 +5,4 @@ create database s12dcup;
 create database seedcup12;
 create database 234234;
 create database seed@#cup;
+create database s$;

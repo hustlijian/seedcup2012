@@ -1,0 +1,116 @@
+insert into table_name values ('valueA', 'valueB')
+function:insert
+tableName = table_name
+amount = 2
+columnType = TEXT
+columnValue = valueA
+columnType = TEXT
+columnValue = valueB
+
+insert into table_name values (123, 1234)
+function:insert
+tableName = table_name
+amount = 2
+columnType = INT
+columnValue = 123
+columnType = INT
+columnValue = 1234
+
+insert into table_name values (123.23, 3423.22)
+function:insert
+tableName = table_name
+amount = 2
+columnType = FLOAT
+columnValue = 123.23
+columnType = FLOAT
+columnValue = 3423.22
+
+
+insert into table_name(columnA, columnB) values ('valueA', 'valueB')
+function:insert
+tableName = table_name
+amount = 2
+columnsName[i] = columnA
+columnType = TEXT
+columnValue = valueA
+columnsName[i] = columnB
+columnType = TEXT
+columnValue = valueB
+
+insert into table_name(columnA, columnB) values (34, 23)
+function:insert
+tableName = table_name
+amount = 2
+columnsName[i] = columnA
+columnType = INT
+columnValue = 34
+columnsName[i] = columnB
+columnType = INT
+columnValue = 23
+
+insert into table_name columnA values 'valueA'
+function:insert
+tableName = table_name
+amount = 1
+columnsName[i] = columnA
+columnType = TEXT
+columnValue = valueA
+
+insert into table_name columnA values 123
+function:insert
+tableName = table_name
+amount = 1
+columnsName[i] = columnA
+columnType = INT
+columnValue = 123
+
+insert into table_name columnA values 1234.23
+function:insert
+tableName = table_name
+amount = 1
+columnsName[i] = columnA
+columnType = FLOAT
+columnValue = 1234.23
+
+
+insert into table_name values (, 'valueB',,'ValueD')
+function:insert
+tableName = table_name
+amount = 4
+columnType = EMPTY
+columnType = TEXT
+columnValue = valueB
+columnType = EMPTY
+columnType = TEXT
+columnValue = ValueD
+
+insert into table_name(cA, CB, CC, CD) values (, 'valueB',,'ValueD')
+function:insert
+tableName = table_name
+amount = 4
+columnsName[i] = cA
+columnType = EMPTY
+columnsName[i] = CB
+columnType = TEXT
+columnValue = valueB
+columnsName[i] = CC
+columnType = EMPTY
+columnsName[i] = CD
+columnType = TEXT
+columnValue = ValueD
+
+insert into table_name(cA, CB, CC, CD) values (, 123,,23.32)
+function:insert
+tableName = table_name
+amount = 4
+columnsName[i] = cA
+columnType = EMPTY
+columnsName[i] = CB
+columnType = INT
+columnValue = 123
+columnsName[i] = CC
+columnType = EMPTY
+columnsName[i] = CD
+columnType = FLOAT
+columnValue = 23.32
+

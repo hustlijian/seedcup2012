@@ -1,0 +1,30 @@
+drop database_name
+function: drop
+databaseName:database_name
+
+drop 
+error
+
+drop 1341234
+error
+
+
+drop database_name table_name
+function: drop
+databaseName:database_name
+tableName:table_name
+
+drop database_name 1234
+error
+
+drop 1234 table_name
+error
+
+drop 234 343
+error
+
+drop database_name table______name
+function: drop
+databaseName:database_name
+tableName:table______name
+
