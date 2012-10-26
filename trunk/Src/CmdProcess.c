@@ -1313,6 +1313,8 @@ int selectCmd(int isInner, Value *resultValue)
 		selectBody.condition = NULL;//没有条件
 		if (setSort(&sortOrder, sortColumnName))
 			return -1;
+		if (!checkEnd())//end
+				return -1;
 	} else {
 		selectBody.condition = NULL;
 		sortOrder  = NOTSORT;
@@ -1385,6 +1387,9 @@ int processCmd(char *cmd)
 			break;
 		case SYN_SELECT: //select
 			flag = selectCmd(0, NULL);//外层
+			break;
+		case SYN_SEMICOLON://;
+			flag = 0;
 			break;
 		default: //unknown cmd
 			flag = -1;
