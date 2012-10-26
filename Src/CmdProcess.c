@@ -789,6 +789,7 @@ int getValue(Value *value)
 			num = 0; //(µÄÊýÄ¿
 			i=0;
 			p=temp;
+			while(isspace(*p)) p++;
 			do{
 				innerSelect[i]=p[i];
 				if (p[i]=='(')
