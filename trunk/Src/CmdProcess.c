@@ -1403,15 +1403,15 @@ int logicalExpProc(char *expStr, Condition **expList)
 {
 	LogicExpStack lExpTmpStk, lExpPloStk;
 	LogicExpStack lExpRevPloStk, lExpRevPloStk2;
-	char *e;
-	int w, i;
+	Value val;
+	char *e, *eTemp;
+	int w, wTemp, i;
 	Condition *locHeadList, *locTailList;
 
 	locHeadList = (Condition *)malloc(sizeof(Condition));
 	locTailList = locHeadList;
 	locTailList->next = NULL;
 	*expList = locHeadList;
-	//e = (char *)calloc(NAME_MAX, sizeof(char));
 	if(logicalExpStkInit(&lExpTmpStk))
 		return -1;
 	if (logicalExpStkInit(&lExpPloStk))
@@ -1459,14 +1459,16 @@ int logicalExpProc(char *expStr, Condition **expList)
 					{
 						if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
 							return -1;
-						if(logicalExpStkGetTop(&lExpPloStk, &e, &w))
+						if(logicalExpStkGetTop(&lExpPloStk, &eTemp, &wTemp))
 							return -1;
-						while (w >= 3 && strcmp(e, "("))
+						while (3 <= w && wTemp != 1)
 						{
 							if(logicalExpStkPop(&lExpTmpStk, &e, &w))
 								return -1;
 							logicalExpStkPush(&lExpPloStk, e, 3);
 							if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
+								return -1;
+							if(logicalExpStkGetTop(&lExpPloStk, &eTemp, &wTemp))
 								return -1;
 						}
 					}
@@ -1479,10 +1481,39 @@ int logicalExpProc(char *expStr, Condition **expList)
 				break;
 			}
 		}
-		else	//操作数，即条件，压入lExpPloStk栈
-			if(SYN_QUOTE != syn && SYN_BRACKET_LEFT != syn &&
+		else if(SYN_QUOTE != syn && SYN_BRACKET_LEFT != syn &&//操作数，即条件，压入lExpPloStk栈
 				SYN_BRACKET_RIGHT != syn && SYN_COMMA != syn)
-				logicalExpStkPush(&lExpPloStk, word, 4);
+		{
+			if(SYN_SELECT == syn)//select语句
+			{
+				--p;
+				getValue(&val);
+				switch(val.columnType)
+				{
+				case INT:
+					 itoa(val.columnValue.intValue, word, 10);
+					break;
+				case FLOAT:
+					sprintf(word, "%f", val.columnValue.floatValue);
+				case TEXT:
+					i = 0;
+					do 
+					{
+						if(!isalnum(val.columnValue.textValue[i]) &&
+							val.columnValue.textValue[i]!=' ' &&
+							val.columnValue.textValue[i] != '_')
+						{	//必须是字符数字，或者空格，下划线 
+							return -1;
+						}
+						word[i] = val.columnValue.textValue[i];
+						i++;
+						
+					} while (val.columnValue.textValue[i]);
+					word[i] = '\0';
+				}
+			}
+			logicalExpStkPush(&lExpPloStk, word, 4);
+		}
 	}
 	if(logicalExpStkPop(&lExpTmpStk, &e, &w))
 		return -1;
@@ -1531,12 +1562,6 @@ int logicalExpProc(char *expStr, Condition **expList)
 				do 
 				{
 					locTailList->value.columnValue.textValue[i] = e[i];
-					if(!isalnum(locTailList->value.columnValue.textValue[i]) &&
-						locTailList->value.columnValue.textValue[i]!=' ' &&
-						locTailList->value.columnValue.textValue[i] != '_')
-					{	//必须是字符数字，或者空格，下划线 
-						return -1;
-					}
 					i++;
 
 				} while (e[i]);
