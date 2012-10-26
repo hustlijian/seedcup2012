@@ -865,7 +865,7 @@ int updateCmd()
 	char updatedColumn[NAME_LENGHT];
 	Value oldValue;
 	COLUMN_TYPE columnType;
-	int i;
+	int i, flag = 0;
 
 	scaner();
 	if (syn!=SYN_IDENTIFIER||isKeywords(word))
@@ -879,8 +879,9 @@ int updateCmd()
 		return -1;
 
 	scaner();
-	if (syn==SYN_IDENTIFIER)
+	if (syn==SYN_IDENTIFIER)//一列，没有括号
 	{
+		flag = 1; //没有括号
 		if (!checkName(word)) //名，英文字符，下划线
 			return -1;
 		strcpy(columnsName[0], word);
@@ -914,24 +915,36 @@ int updateCmd()
 		
   if (columnAmount==0)
 	{
-		if (getValue(&newValues[0]))
+	  if (flag) //没有括号
+	  {
+		if (getValue(&newValues[0]))//一列，没有括号
 			return -1;
+	  } else {
+		  scaner();
+		  if (syn != SYN_PAREN_LEFT)//(
+			return -1;
+		  if (getValue(&newValues[0]))//一列，没有括号
+			return -1;
+		  scaner();
+		  if (syn != SYN_PAREN_RIGHT)//)
+			return -1;		
+	  }
 	} else
 	{
-    scaner();
-    if (syn!=SYN_PAREN_LEFT)//(
-      return -1;
-    if (getValue(&newValues[0]))
-      return -1;
-    for (i=0,scaner();syn==SYN_COMMA;scaner())
-    {
-      if (getValue(&newValues[++i]))
-        return -1;
-    }
-    if (i!=columnAmount)//columns == values
-      return -1;
-    if (syn!=SYN_PAREN_RIGHT)//)
-      return -1;
+		scaner();
+		if (syn!=SYN_PAREN_LEFT)//(
+		  return -1;
+		if (getValue(&newValues[0]))
+		  return -1;
+		for (i=0,scaner();syn==SYN_COMMA;scaner())
+		{
+		  if (getValue(&newValues[++i]))
+			return -1;
+		}
+		if (i!=columnAmount)//columns == values
+		  return -1;
+		if (syn!=SYN_PAREN_RIGHT)//)
+		  return -1;
   }
 	scaner();
 	if (syn!=SYN_WHERE)//where
@@ -993,7 +1006,7 @@ int insertCmd()
 	char *columns[COL_NUM];
 	Value values[COL_NUM];
 	int amount, i;
-	int colFlag=-1;
+	int colFlag=0;
 
 	scaner();
 	if (syn!=SYN_INTO)//into
@@ -1033,6 +1046,7 @@ int insertCmd()
 			return -1;
 	} else if (syn ==SYN_IDENTIFIER)//一个列，省略括号
 	{
+		colFlag = 2;
 		if (!checkName(word)) //名，英文字符，下划线
 			return -1;
 		strcpy(columnsName[0], word);
@@ -1044,9 +1058,21 @@ int insertCmd()
 		return -1;
 	if (amount==0)
 	{
-		if (getValue(&values[0]))
+		if (colFlag == 2) {//一个列，省略括号
+			if (getValue(&values[0]))
+					return -1;
+		} else {//一个列，打了括号
+			scaner();
+			if (syn!=SYN_PAREN_LEFT)//(
+			return -1;
+
+			if (getValue(&values[0]))
+					return -1;
+			
+			scaner();
+			if (syn!=SYN_PAREN_RIGHT)//(
 				return -1;
-		amount = 0;
+		}
 	}else{
 		scaner();
 		if (syn!=SYN_PAREN_LEFT)//(
