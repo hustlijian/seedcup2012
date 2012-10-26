@@ -1356,7 +1356,7 @@ int logicalExpProc(char *expStr, Condition **expList)
 	LogicExpStack lExpTmpStk, lExpPloStk;
 	LogicExpStack lExpRevPloStk, lExpRevPloStk2;
 	char *e;
-	int w;
+	int w, i;
 	Condition *locHeadList, *locTailList;
 
 	locHeadList = (Condition *)malloc(sizeof(Condition));
@@ -1478,7 +1478,21 @@ int logicalExpProc(char *expStr, Condition **expList)
 				locTailList->value.columnValue.floatValue = (float)atof(e);
 				break;
 			case TEXT:
-				locTailList->value.columnValue.textValue = e;
+				i = 0;
+				locTailList->value.columnValue.textValue = (char *)malloc(NAME_MAX * sizeof(char));
+				do 
+				{
+					locTailList->value.columnValue.textValue[i] = e[i];
+					if(!isalnum(locTailList->value.columnValue.textValue[i]) &&
+						locTailList->value.columnValue.textValue[i]!=' ' &&
+						locTailList->value.columnValue.textValue[i] != '_')
+					{	//必须是字符数字，或者空格，下划线 
+						return -1;
+					}
+					i++;
+
+				} while (e[i]);
+				locTailList->value.columnValue.textValue[i] = '\0';
 				break;
 			}
 			if(logicalExpStkPop(&lExpRevPloStk2, &e, &w))
@@ -1493,9 +1507,6 @@ int logicalExpProc(char *expStr, Condition **expList)
 					break;
 				case FLOAT:
 					locTailList->value2.columnValue.floatValue = (float)atof(e);
-					break;
-				case TEXT:
-					locTailList->value2.columnValue.textValue = e;
 					break;
 				}
 				if(logicalExpStkPop(&lExpRevPloStk2, &e, &w))
