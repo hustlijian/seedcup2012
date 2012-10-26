@@ -1,0 +1,7 @@
+create database seedcup;
+CReate dAtabase seedcup;
+create database seed_cup;
+create database s12dcup;
+create database seedcup12;
+create database 234234;
+create database seed@#cup;

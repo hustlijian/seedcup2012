@@ -1,0 +1,18 @@
+update person set (firstName, city) = ('fred', 'wuhan') where lastName == 'john';
+update person set firstName = 'fred' where lastName == 'john';
+update person set firstName = 23 where lastName == 'john';
+update person set firstName = 123.3 where lastName == 'john';
+update person set firstName = 'fred' where 234 == 'john';
+update person set firstName = 'fred' where lastName == 123;
+update person set firstName = 'fred' where lastName == 123.3;
+update person set (firstName, city) = (23, 123) where lastName == 'john';
+update person set (firstName, city) = (23.2, 23.33) where lastName == 'john';
+
+update person  (firstName, city) = ('fred', 'wuhan') where lastName == 'john';
+update person SEt (firstName, city) = ('fred', 'wuhan') where lastName == 'john';
+update person set (firstName, city) = ('fred', 'wuhan' where lastName == 'john';
+update person set (firstName, city) = ('fred', 'wuhan') whee lastName == 'john';
+update person set (firstName, city) = ('fred', 'wuhan') where lastName = 'john';
+
+update person set (firstName, city) = ('fred', 'wuhan') where age == 1234;
+update person set (firstName, city) = ('fred', 'wuhan') where salary == 123.32;

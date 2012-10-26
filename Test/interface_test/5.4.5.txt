@@ -1,0 +1,5 @@
+use database_name;
+use databaseName;
+use 12343;
+use #$%@#$%;
+UsE database_name;

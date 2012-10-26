@@ -1,0 +1,15 @@
+rename table old_name new_name;
+rename table 123 new_name;
+rename table old_name 234;
+rename table 234 1234;
+rename table one_name ;
+rename TaBle old_name new_name;
+
+rename database old_name new_name;
+rename database 123 new_name;
+rename database old_name 1234;
+rename database 234 4324;
+rename database old_name ;
+
+rename databases old_name new_name;
+rename tablesss old_name new_name;

@@ -1,0 +1,2 @@
+select * from table_name where(((cola=='yao') or (colb<24) and (colc >= 2.1)) or (cold =='fan'))
+select cola, colb from table_name where(((cola == 'yao') or (colc <24))and (cold == 'fan'));

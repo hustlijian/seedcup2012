@@ -1,0 +1,31 @@
+alter table persons add birthday TEXT;
+alter taBle persons add birthday TEXT;
+alter table perSons add birthday TEXT;
+alter table persons birthday TEXT;
+alter table persons add birthday ;
+alter table persons add  TEXT;
+alter table persons add birth_day TEXT;
+alter table per_sons add birthday TEXT;
+alter table 1234 add birthday TEXT;
+alter table persons add 5656 TEXT;
+alter table persons add birthday NOTKNOWN;
+alter table persons add birthday text, day int;
+
+alter table persons alter column birthday int;
+alter table perSons alter column birthday int;
+alter table persons alter column birth_day int;
+alter table persons  column birthday int;
+alter table persons alter  birthday int;
+alter table persons alter column birthday ;
+alter table persons alter column  int;
+alter table persons alter column birthday FLOAT;
+alter table persons alter column birthday NOTKNOWN;
+alter table persons alter column birthday int, another int;
+
+alter table persons drop column city;
+alter table perSons drop column city;
+alter table persons drop  city;
+alter table persons drop column ;
+alter table persons drop column city, birthday;
+alter table persons drop column 234;
+alter table 23434 drop column 1234324;

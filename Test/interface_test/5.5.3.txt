@@ -1,0 +1,7 @@
+delete table_name where column == 'value';
+delete table_name where column == value;
+delete 134 where column == 'value';
+delete table_name where 234 == 'value';
+delete table_name where column == 234;
+delete table_name where column == 1234.2;
+delete table_name  column == 'value';
