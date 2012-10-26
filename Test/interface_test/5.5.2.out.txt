@@ -1,0 +1,185 @@
+update person set (firstName, city) = ('fred', 'wuhan') where lastName == 'john'
+function:update
+tableName:person
+columnAmount = 2
+columnsName[i] = firstName
+Values[i]
+columnType = TEXT
+columnValue = fred
+columnsName[i] = city
+Values[i]
+columnType = TEXT
+columnValue = wuhan
+updatedColumn = lastName
+oldvalue:
+columnType = TEXT
+columnValue = john
+
+update person set firstName = 'fred' where lastName == 'john'
+function:update
+tableName:person
+columnAmount = 1
+columnsName[i] = firstName
+Values[i]
+columnType = TEXT
+columnValue = fred
+updatedColumn = lastName
+oldvalue:
+columnType = TEXT
+columnValue = john
+
+update person set firstName = 23 where lastName == 'john'
+function:update
+tableName:person
+columnAmount = 1
+columnsName[i] = firstName
+Values[i]
+columnType = INT
+columnValue = 23
+updatedColumn = lastName
+oldvalue:
+columnType = TEXT
+columnValue = john
+
+update person set firstName = 123.3 where lastName == 'john'
+function:update
+tableName:person
+columnAmount = 1
+columnsName[i] = firstName
+Values[i]
+columnType = FLOAT
+columnValue = 123.30
+updatedColumn = lastName
+oldvalue:
+columnType = TEXT
+columnValue = john
+
+update person set firstName = 'fred' where 234 == 'john'
+error
+
+update person set firstName = 'fred' where lastName == 123
+function:update
+tableName:person
+columnAmount = 1
+columnsName[i] = firstName
+Values[i]
+columnType = TEXT
+columnValue = fred
+updatedColumn = lastName
+oldvalue:
+columnType = INT
+columnValue = 123
+
+update person set firstName = 'fred' where lastName == 123.3
+function:update
+tableName:person
+columnAmount = 1
+columnsName[i] = firstName
+Values[i]
+columnType = TEXT
+columnValue = fred
+updatedColumn = lastName
+oldvalue:
+columnType = FLOAT
+columnValue = 123.30
+
+update person set (firstName, city) = (23, 123) where lastName == 'john'
+function:update
+tableName:person
+columnAmount = 2
+columnsName[i] = firstName
+Values[i]
+columnType = INT
+columnValue = 23
+columnsName[i] = city
+Values[i]
+columnType = INT
+columnValue = 123
+updatedColumn = lastName
+oldvalue:
+columnType = TEXT
+columnValue = john
+
+update person set (firstName, city) = (23.2, 23.33) where lastName == 'john'
+function:update
+tableName:person
+columnAmount = 2
+columnsName[i] = firstName
+Values[i]
+columnType = FLOAT
+columnValue = 23.20
+columnsName[i] = city
+Values[i]
+columnType = FLOAT
+columnValue = 23.33
+updatedColumn = lastName
+oldvalue:
+columnType = TEXT
+columnValue = john
+
+
+update person  (firstName, city) = ('fred', 'wuhan') where lastName == 'john'
+error
+
+update person SEt (firstName, city) = ('fred', 'wuhan') where lastName == 'john'
+function:update
+tableName:person
+columnAmount = 2
+columnsName[i] = firstName
+Values[i]
+columnType = TEXT
+columnValue = fred
+columnsName[i] = city
+Values[i]
+columnType = TEXT
+columnValue = wuhan
+updatedColumn = lastName
+oldvalue:
+columnType = TEXT
+columnValue = john
+
+update person set (firstName, city) = ('fred', 'wuhan' where lastName == 'john'
+error
+
+update person set (firstName, city) = ('fred', 'wuhan') whee lastName == 'john'
+error
+
+update person set (firstName, city) = ('fred', 'wuhan') where lastName = 'john'
+error
+
+
+update person set (firstName, city) = ('fred', 'wuhan') where age == 1234
+function:update
+tableName:person
+columnAmount = 2
+columnsName[i] = firstName
+Values[i]
+columnType = TEXT
+columnValue = fred
+columnsName[i] = city
+Values[i]
+columnType = TEXT
+columnValue = wuhan
+updatedColumn = age
+oldvalue:
+columnType = INT
+columnValue = 1234
+
+update person set (firstName, city) = ('fred', 'wuhan') where salary == 123.32
+function:update
+tableName:person
+columnAmount = 2
+columnsName[i] = firstName
+Values[i]
+columnType = TEXT
+columnValue = fred
+columnsName[i] = city
+Values[i]
+columnType = TEXT
+columnValue = wuhan
+updatedColumn = salary
+oldvalue:
+columnType = FLOAT
+columnValue = 123.32
+
+

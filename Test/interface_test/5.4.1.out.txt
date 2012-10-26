@@ -1,0 +1,28 @@
+create database seedcup
+function:createDatabase
+databaseName: seedcup
+
+CReate dAtabase seedcup
+function:createDatabase
+databaseName: seedcup
+
+create database seed_cup
+function:createDatabase
+databaseName: seed_cup
+
+create database s12dcup
+error
+
+create database seedcup12
+error
+
+create database 234234
+error
+
+create database seed@#cup
+error
+
+create database s$
+function:createDatabase
+databaseName: s
+

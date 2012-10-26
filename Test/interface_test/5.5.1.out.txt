@@ -1,0 +1,609 @@
+select lastname, firstname from persons
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 2
+columnsName[i] = lastname
+columnsName[i] = firstname
+condition:
+no condition!
+no sort!
+NOTSORT
+
+select lastname, firstname, goodname from persons
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 3
+columnsName[i] = lastname
+columnsName[i] = firstname
+columnsName[i] = goodname
+condition:
+no condition!
+no sort!
+NOTSORT
+
+select lastname from persons
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 1
+columnsName[i] = lastname
+condition:
+no condition!
+no sort!
+NOTSORT
+
+select lastname, firstname  persons
+error
+
+select lastname firstname from persons
+error
+
+select 1234, firstname from persons
+error
+
+select lastname, 1234 from persons
+error
+
+select lastname, firstname from 32423
+error
+
+select 1234, 413 from 134
+error
+
+select lastname, firstname From persons
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 2
+columnsName[i] = lastname
+columnsName[i] = firstname
+condition:
+no condition!
+no sort!
+NOTSORT
+
+
+select * from persons
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+no condition!
+no sort!
+NOTSORT
+
+select * from 2134
+error
+
+select * from persons
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+no condition!
+no sort!
+NOTSORT
+
+
+select * from persons where city == 'Beijing'
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = city
+EQ
+columnType = TEXT
+columnValue = Beijing
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons wHere city == 'Beijing'
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = city
+EQ
+columnType = TEXT
+columnValue = Beijing
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where city ~= 'Beijing'
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = city
+NE
+columnType = TEXT
+columnValue = Beijing
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where city > 'Beijing'
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = city
+GT
+columnType = TEXT
+columnValue = Beijing
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where city < 'Beijing'
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = city
+LT
+columnType = TEXT
+columnValue = Beijing
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where city >= 'Beijing'
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = city
+GET
+columnType = TEXT
+columnValue = Beijing
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where city <= 'Beijing'
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = city
+LET
+columnType = TEXT
+columnValue = Beijing
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where city like [Beijing]
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = city
+LIKE
+columnType = TEXT
+columnValue = Beijing
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where city like [Be?jing]
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = city
+LIKE
+columnType = TEXT
+columnValue = Be?jing
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where city like [Be*jing]
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = city
+LIKE
+columnType = TEXT
+columnValue = Be*jing
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where age == 12
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+EQ
+columnType = INT
+columnValue = 12
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where age ~= 12
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+NE
+columnType = INT
+columnValue = 12
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where age > 12
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+GT
+columnType = INT
+columnValue = 12
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where age < 12
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+LT
+columnType = INT
+columnValue = 12
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where age >= 12
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+GET
+columnType = INT
+columnValue = 12
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where age <= 12
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+LET
+columnType = INT
+columnValue = 12
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where age between[ 12, 23]
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+BETWEEN
+columnType = INT
+columnValue = 12
+value2:
+columnType = INT
+columnValue = 23
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where salary == 12.23
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = salary
+EQ
+columnType = FLOAT
+columnValue = 12.23
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where salary ~= 12.23
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = salary
+NE
+columnType = FLOAT
+columnValue = 12.23
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where salary < 12.23
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = salary
+LT
+columnType = FLOAT
+columnValue = 12.23
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where salary > 12.23
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = salary
+GT
+columnType = FLOAT
+columnValue = 12.23
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where salary <= 12.23
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = salary
+LET
+columnType = FLOAT
+columnValue = 12.23
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where salary >= 12.23
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = salary
+GET
+columnType = FLOAT
+columnValue = 12.23
+NOLOGIC
+no sort!
+NOTSORT
+
+select * from persons where salary between[12.23,123.2]
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = salary
+BETWEEN
+columnType = FLOAT
+columnValue = 12.23
+value2:
+columnType = FLOAT
+columnValue = 123.20
+NOLOGIC
+no sort!
+NOTSORT
+
+
+select * from persons where salary = 12.23
+error
+
+select * from persons where salary %= 12.23
+error
+
+select * from persons where salary -= 12.23
+error
+
+
+select * from persons where age == 12 order by company desc
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+EQ
+columnType = INT
+columnValue = 12
+NOLOGIC
+sortColumnName= company
+DESC
+
+select * from persons where age ~= 12 order by company incr
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+NE
+columnType = INT
+columnValue = 12
+NOLOGIC
+sortColumnName= company
+INCR
+ 
+select * from persons where age > 12 order by company incr
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+GT
+columnType = INT
+columnValue = 12
+NOLOGIC
+sortColumnName= company
+INCR
+
+select * from persons where age < 12 order by company desc
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+LT
+columnType = INT
+columnValue = 12
+NOLOGIC
+sortColumnName= company
+DESC
+
+select * from persons where age >= 12 order by company desc
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+GET
+columnType = INT
+columnValue = 12
+NOLOGIC
+sortColumnName= company
+DESC
+
+select * from persons where age <= 12 order by company incr
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+LET
+columnType = INT
+columnValue = 12
+NOLOGIC
+sortColumnName= company
+INCR
+
+select * from persons where age between[ 12, 23] order by company desc
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = age
+BETWEEN
+columnType = INT
+columnValue = 12
+value2:
+columnType = INT
+columnValue = 23
+NOLOGIC
+sortColumnName= company
+DESC
+
+
+select * from persons where age == 12 order company desc
+error
+
+select * from persons where age == 12 order by  desc
+error
+
+select * from persons where age == 12 order by company nosort
+error
+
+
+select * from persons where city == 'hk' order by age desc
+function: select
+selcet:  out
+
+tableName:persons
+columnAmount = 0
+condition:
+columnName = city
+EQ
+columnType = TEXT
+columnValue = hk
+NOLOGIC
+sortColumnName= age
+DESC
+
+

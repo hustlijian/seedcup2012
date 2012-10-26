@@ -1,0 +1,20 @@
+truncate table table_name
+function: truncateTable
+tableName:table_name
+
+truncate tables table_name
+error
+
+truncate Table table_name
+function: truncateTable
+tableName:table_name
+
+truncate table 123432
+error
+
+truncate table 
+error
+
+truncate table_name
+error
+
