@@ -15,6 +15,8 @@ int logicalExpStkInit(LogicExpStack *stk)
 
 int logicalExpStkGetTop(const LogicExpStack *stk, char **var, int *w)
 {
+	if (!logicalExpStkEmpty(stk))
+		return -1;
 	*var = (stk->SP->next->data);
 	*w = stk->SP->next->w;
 	return 0;
@@ -39,6 +41,9 @@ int logicalExpStkPop(LogicExpStack *stk, char **var, int *w)
 {
 	node *cur;
 	
+	if (!logicalExpStkEmpty(stk))
+		return -1;
+
 	cur = stk->SP;
 	stk->SP = stk->SP->next;
 	//var = stk->SP->data;
