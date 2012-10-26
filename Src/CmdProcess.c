@@ -301,10 +301,17 @@ int createTableCmd()
 	}
 	if(syn!=SYN_PAREN_LEFT)	//'('
 		return -1;
-	for (countAmount=0;countAmount<COL_NUM;countAmount++)
+
+	scaner();
+	if (syn == SYN_PAREN_RIGHT)//')'
 	{
-		scaner();
-		if (syn==SYN_PAREN_RIGHT) break; //')'
+		if(createTable(tableName,NULL, NULL, 0))
+			return -1;
+		return 0;
+	}
+	for (countAmount=0;countAmount<COL_NUM;countAmount++,scaner())
+	{
+		
 		if(syn!=SYN_IDENTIFIER||isKeywords(word)) 
 			return -1;
 		if (!checkName(word)) //检查数据名，英文字符，下划线
@@ -317,7 +324,8 @@ int createTableCmd()
 		else {
 			columnType[countAmount] = NONE;
 			if (syn==SYN_PAREN_RIGHT) break; //')'
-			if (syn!=SYN_COMMA) return -1; //逗号
+			if (syn==SYN_COMMA) continue; //逗号
+			else return -1;
 		}
 
 		scaner();
