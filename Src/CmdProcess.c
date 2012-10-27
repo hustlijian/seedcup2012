@@ -1303,10 +1303,11 @@ int selectCmd(int isInner, Value *resultValue)
 			return -1;
 		if (!checkEnd())//end
 				return -1;
-	} else {
+	} else if (syn== SYN_SEMICOLON) {//end, ;
 		selectBody.condition = NULL;
 		sortOrder  = NOTSORT;
-	}
+	} else 
+		return -1;
  
 	//todo:select
 	selectBody.tableName = tableName;
