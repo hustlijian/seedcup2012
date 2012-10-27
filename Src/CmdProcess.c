@@ -1058,7 +1058,7 @@ int insertCmd()
 					return -1;
 			
 			scaner();
-			if (syn!=SYN_PAREN_RIGHT)//(
+			if (syn!=SYN_PAREN_RIGHT && syn != SYN_SEMICOLON )//),;
 				return -1;
 		}
 	}else{
