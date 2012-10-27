@@ -16,21 +16,21 @@ static int handleOr(Table *table, Condition *condition, int *orRowNumber);
 static int selectMatchedRow(ColumnValue **columnsValue, COLUMN_TYPE columnType, int *rowNumber, int rowAmount,
                             Condition *condition);
 static int match(ColumnValue *columnValue, COLUMN_TYPE columnType, Condition *condition);
-static int eqOperation(Data data, Value *value);
-static int neOperation(Data data, Value *value);
-static int gtOperation(Data data, Value *value);
-static int ltOperation(Data data, Value *value);
-static int getOperation(Data data, Value *value);
-static int letOperation(Data data, Value *value);
-static int betweenOperation(Data data, Value *value);
-static int likeOperation(Data data, Value *value);
+static int eqOperation(Data data, COLUMN_TYPE columnType, Value *value);
+static int neOperation(Data data, COLUMN_TYPE columnType, Value *value);
+static int gtOperation(Data data, COLUMN_TYPE columnType, Value *value);
+static int ltOperation(Data data, COLUMN_TYPE columnType, Value *value);
+static int getOperation(Data data, COLUMN_TYPE columnType, Value *value);
+static int letOperation(Data data, COLUMN_TYPE columnType, Value *value);
+static int betweenOperation(Data data, COLUMN_TYPE columnType, Value *value);
+static int likeOperation(Data data, COLUMN_TYPE columnType, Value *value);
 static int matchRegex(const char *string, const char *pattern);
 static int mergeAndOr(int (*andRowNumber)[ROW_MAX], int *andRowAmount, int andCount, int (*orRowNumber)[ROW_MAX],
                       int *orRowAmount, int orCount, int *resultRowNumber);
 static int insertToResult(int *rowNumber, int rowAmount, int *result, int resultAmount);
 static int inResult(int number, int *result, int resultAmount);
 
-static int (*operations[8])(Data , Value *) = {
+static int (*operations[8])(Data , COLUMN_TYPE, Value *) = {
     eqOperation, neOperation, gtOperation, ltOperation,
     getOperation, letOperation, betweenOperation, likeOperation
 };
@@ -128,6 +128,8 @@ int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmo
             columnValueTra = (*selectedColumn)->columnValueHead;
             for (i = 0; i < resultRowNumber[0]; i++)
                 columnValueTra = columnValueTra->next;
+            if (columnValueTra->hasData == 0)
+                return -1;
             *resultColumnValue = columnValueTra;
         }
     } else {
@@ -223,25 +225,36 @@ static int selectMatchedRow(ColumnValue **columnsValue, COLUMN_TYPE columnType, 
 }
 static int match(ColumnValue *columnValue, COLUMN_TYPE columnType, Condition *condition)
 {
-    if (condition->value.columnType != columnType)
+    COLUMN_TYPE conColumnType = condition->value.columnType;
+    if (conColumnType != columnType && (conColumnType == TEXT || columnType == TEXT))
         return -1;
-    int operNumber = condition->operator;
-    Value value[2] = {condition->value, condition->value2};
     if (columnValue->hasData == 0)
         return 0;
-    int result = operations[operNumber](columnValue->data, value);
+
+    int operNumber = condition->operator;
+    Value value[2] = {condition->value, condition->value2};
+
+    int result = operations[operNumber](columnValue->data, columnType, value);
     return result;
 }
-static int eqOperation(Data data, Value *value)
+static int eqOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
+    float dataFloat, valueFloat;
+    if (columnType == INT)
+        dataFloat = (float)data.intValue;
+    else if (columnType == FLOAT)
+        dataFloat = data.floatValue;
+
     switch (value[0].columnType)
     {
     case INT:
-        result = (data.intValue == value[0].columnValue.intValue);
+        valueFloat = (float)value[0].columnValue.intValue;
+        result = (dataFloat == valueFloat);
         break;
     case FLOAT:
-        result = (data.floatValue == value[0].columnValue.floatValue);
+        valueFloat = value[0].columnValue.floatValue;
+        result = (dataFloat == valueFloat);
         break;
     case TEXT:
         result = !strcmp(data.textValue, value[0].columnValue.textValue);
@@ -252,16 +265,24 @@ static int eqOperation(Data data, Value *value)
     }
     return result;
 }
-static int neOperation(Data data, Value *value)
+static int neOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
+    float dataFloat, valueFloat;
+    if (columnType == INT)
+        dataFloat = (float)data.intValue;
+    else if (columnType == FLOAT)
+        dataFloat = data.floatValue;
+
     switch (value[0].columnType)
     {
     case INT:
-        result = (data.intValue != value[0].columnValue.intValue);
+        valueFloat = (float)value[0].columnValue.intValue;
+        result = (dataFloat != valueFloat);
         break;
     case FLOAT:
-        result = (data.floatValue != value[0].columnValue.floatValue);
+        valueFloat = value[0].columnValue.floatValue;
+        result = (dataFloat!= valueFloat);
         break;
     case TEXT:
         result = strcmp(data.textValue, value[0].columnValue.textValue);
@@ -272,16 +293,24 @@ static int neOperation(Data data, Value *value)
     }
     return result;
 }
-static int gtOperation(Data data, Value *value)
+static int gtOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
+    float dataFloat, valueFloat;
+    if (columnType == INT)
+        dataFloat = (float)data.intValue;
+    else if (columnType == FLOAT)
+        dataFloat = data.floatValue;
+
     switch (value[0].columnType)
     {
     case INT:
-        result = (data.intValue > value[0].columnValue.intValue);
+        valueFloat = (float)value[0].columnValue.intValue;
+        result = (dataFloat > valueFloat);
         break;
     case FLOAT:
-        result = (data.floatValue > value[0].columnValue.floatValue);
+        valueFloat = value[0].columnValue.floatValue;
+        result = (dataFloat > valueFloat);
         break;
     case TEXT:
         result = (strcmp(data.textValue, value[0].columnValue.textValue) > 0);
@@ -291,16 +320,24 @@ static int gtOperation(Data data, Value *value)
     }
     return result;
 }
-static int ltOperation(Data data, Value *value)
+static int ltOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
+    float dataFloat, valueFloat;
+    if (columnType == INT)
+        dataFloat = (float)data.intValue;
+    else if (columnType == FLOAT)
+        dataFloat = data.floatValue;
+
     switch (value[0].columnType)
     {
     case INT:
-        result = (data.intValue < value[0].columnValue.intValue);
+        valueFloat = (float)value[0].columnValue.intValue;
+        result = (dataFloat < valueFloat);
         break;
     case FLOAT:
-        result = (data.floatValue < value[0].columnValue.floatValue);
+        valueFloat = value[0].columnValue.floatValue;
+        result = (dataFloat < valueFloat);
         break;
     case TEXT:
         result = (strcmp(data.textValue, value[0].columnValue.textValue) < 0);
@@ -310,16 +347,24 @@ static int ltOperation(Data data, Value *value)
     }
     return result;
 }
-static int getOperation(Data data, Value *value)
+static int getOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
+    float dataFloat, valueFloat;
+    if (columnType == INT)
+        dataFloat = (float)data.intValue;
+    else if (columnType == FLOAT)
+        dataFloat = data.floatValue;
+
     switch (value[0].columnType)
     {
     case INT:
-        result = (data.intValue >= value[0].columnValue.intValue);
+        valueFloat = (float)value[0].columnValue.intValue;
+        result = (dataFloat >= valueFloat);
         break;
     case FLOAT:
-        result = (data.floatValue >= value[0].columnValue.floatValue);
+        valueFloat = value[0].columnValue.floatValue;
+        result = (dataFloat >= valueFloat);
         break;
     case TEXT:
         result = (strcmp(data.textValue, value[0].columnValue.textValue) >= 0);
@@ -329,16 +374,24 @@ static int getOperation(Data data, Value *value)
     }
     return result;
 }
-static int letOperation(Data data, Value *value)
+static int letOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
+    float dataFloat, valueFloat;
+    if (columnType == INT)
+        dataFloat = (float)data.intValue;
+    else if (columnType == FLOAT)
+        dataFloat = data.floatValue;
+
     switch (value[0].columnType)
     {
     case INT:
-        result = (data.intValue <= value[0].columnValue.intValue);
+        valueFloat = (float)value[0].columnValue.intValue;
+        result = (dataFloat <= valueFloat);
         break;
     case FLOAT:
-        result = (data.floatValue <= value[0].columnValue.floatValue);
+        valueFloat = value[0].columnValue.floatValue;
+        result = (dataFloat <= valueFloat);
         break;
     case TEXT:
         result = (strcmp(data.textValue, value[0].columnValue.textValue) <= 0);
@@ -348,27 +401,38 @@ static int letOperation(Data data, Value *value)
     }
     return result;
 }
-static int betweenOperation(Data data, Value *value)
+static int betweenOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
-    if (value[0].columnType != value[1].columnType)
-        return -1;
+    float dataFloat, value1Float, value2Float;
+    if (value[0].columnType == TEXT || value[1].columnType == TEXT)
+            return -1;
+
+    if (columnType == INT)
+        dataFloat = (float)data.intValue;
+    else if (columnType == FLOAT)
+        dataFloat = data.floatValue;
+    if (value[1].columnType == INT)
+        value2Float = (float)value[1].columnValue.intValue;
+    else if (value[1].columnType == FLOAT)
+        value2Float = value[1].columnValue.floatValue;
+
     switch (value[0].columnType)
     {
     case INT:
-        result = (data.intValue > value[0].columnValue.intValue &&
-                  data.intValue < value[1].columnValue.intValue);
+        value1Float = (float)value[0].columnValue.intValue;
+        result = (dataFloat > value1Float && dataFloat < value2Float);
         break;
     case FLOAT:
-        result = (data.floatValue > value[0].columnValue.floatValue &&
-                  data.floatValue < value[1].columnValue.floatValue);
+        value1Float = value[0].columnValue.floatValue;
+        result = (dataFloat > value1Float && dataFloat < value2Float);
         break;
     default:
         break;
     }
     return result;
 }
-static int likeOperation(Data data, Value *value)
+static int likeOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
     char *regexString;
