@@ -59,7 +59,7 @@ int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmo
                     index = i * selColumnAmount + j;
                     resultColumnValue[index] = resultColumnValue[index-selColumnAmount]->next;
                 }
-                if (resultColumnValue[index]->next == NULL)
+                if (resultColumnValue[index] == NULL)
                     break;
             }
         return i;
