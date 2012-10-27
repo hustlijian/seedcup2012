@@ -50,6 +50,20 @@ int main(int argc, char* argv[])
 					if (c == EOF)
 						break;
 			}
+			if (c2 == '/' && c == '*')
+			{
+				i-= 2;
+				str[i] = '\0';
+				while(1)
+				{
+					c = getchar();
+					if (c2 == '*' && c == '/')
+					{
+						break;
+					}
+					c2 = c;
+				}
+			}
 			c2=c;
 			if (c != EOF)
 				c=getchar();
