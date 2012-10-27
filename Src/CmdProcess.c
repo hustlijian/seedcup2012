@@ -1320,11 +1320,7 @@ int selectCmd(int isInner, Value *resultValue)
 
 	if (select(&selectBody))
 		return -1;
-	if (!isInner && (selectBody.resultValue != NULL)&& selectBody.resultValue->columnType == EMPTY)//外层，且内部返回值空
-	{
-		printf("$\n");
-		return 0;
-	}	
+	
 	if (resultValue!=NULL)
 		freeValue(resultValue);
 	for (temp=selectBody.condition; temp!=NULL; temp=temp->next)
@@ -1493,7 +1489,6 @@ int logicalExpProc(char *expStr, Condition **expList)
 	{
 		if (logicalExpStkPop(&lExpPloStk, &e, &w))
 			return -1;
-		printf("%s ", e);
 		logicalExpStkPush(&lExpRevPloStk, e, w);
 	}
 	//处理逆波兰式，写入链表
