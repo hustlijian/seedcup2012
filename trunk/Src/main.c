@@ -6,7 +6,7 @@
 
 int main(int argc, char* argv[])
 {	
-	char str[1024], c;
+	char str[1024], c, c2;
 	char inputFile[64]="";
 	char outputFile[64]="";
 	int i = 0, j;
@@ -40,8 +40,20 @@ int main(int argc, char* argv[])
 
 	do 
 	{
-		for (i=0,c=getchar();c!=';'&&c!=EOF;c=getchar())
+		for (i=0,c=getchar();c!=';'&&c!=EOF;) {
 			str[i++]=c;
+			c2 = c;
+			if (c2=='/' && c=='/' && i>1)
+			{
+				i-= 2;
+				str[i] = '\0';
+				while((c=getchar())!='\n')
+					if (c == EOF)
+						break;
+			}
+			if (c != EOF)
+				c=getchar();
+		}
 		if (c==';')
 			str[i]=';';
 		else str[i]='\0';
