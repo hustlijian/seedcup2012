@@ -110,7 +110,7 @@ OPERATOR getOptType(char *str)
 {
 	switch (getTypeNum(str))
 	{
-	case SYN_ASSIGN:
+	case SYN_EQUAL:
 		return EQ;
 	case SYN_NOT_EQUAL:
 		return NE;
@@ -138,7 +138,7 @@ int isLgcExpOpt(char *str)
 {
 	switch (getTypeNum(str))
 	{
-	case SYN_ASSIGN:
+	case SYN_EQUAL:
 	case SYN_NOT_EQUAL:
 	case SYN_MORE_EQUAL:
 	case SYN_LESS_EQUAL:
