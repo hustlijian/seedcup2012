@@ -216,7 +216,7 @@ int calExpression(char *A, float *result)
 					return -1;
 				*s++;
 			}
-			else if ( w <= iTemp && (isdigit(*(s-1)) || *(s-1) == '(' || *(s-1) == ')')) 
+			else if ( w <= iTemp && (isdigit(*(s-1)) || *(s-1) == '(' || *(s-1) == ')'))// 
 			{
 				if (Gettop1(p, &fTemp))
 					return -1;
@@ -275,11 +275,11 @@ int calExpression(char *A, float *result)
 		{
 			h = 0;
 			L[i] = (SeqList *)malloc(sizeof(SeqList));
-			if (*(s-1) == '+' && !isdigit(*(s-2)))
+			if (*(s-1) == '+' && !isdigit(*(s-2)) && *(s-2) != ')')
 			{
 				Pop2(q);
 			}
-			else if (*(s-1) == '-' && !isdigit(*(s-2)))
+			else if (*(s-1) == '-' && !isdigit(*(s-2)) && *(s-2) != ')')
 			{
 				Pop2(q);
 				negFlag = 1;
