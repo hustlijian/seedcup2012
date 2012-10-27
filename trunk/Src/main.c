@@ -40,9 +40,8 @@ int main(int argc, char* argv[])
 
 	do 
 	{
-		for (i=0,c=getchar();c!=';'&&c!=EOF;) {
-			str[i++]=c;
-			c2 = c;
+		for (i=0,c2=c=getchar();c!=';'&&c!=EOF;) {
+			str[i++]=c;			
 			if (c2=='/' && c=='/' && i>1)
 			{
 				i-= 2;
@@ -51,6 +50,7 @@ int main(int argc, char* argv[])
 					if (c == EOF)
 						break;
 			}
+			c2=c;
 			if (c != EOF)
 				c=getchar();
 		}
