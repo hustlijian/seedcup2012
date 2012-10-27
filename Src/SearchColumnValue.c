@@ -44,12 +44,33 @@ int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmo
     int orRowAmount[MAX];
     int columnAmount = getColumnAmount(table);
     int i, j;
+    int index = 0;
+    if (condition == NULL)
+    {
+        for (i = 0; i < selColumnAmount; i++)
+            resultColumnValue[i] = selectedColumn[i]->columnValueHead;
+        if (resultColumnValue[0] == NULL)
+            i = 0;
+        else
+            for (i = 1; ; i++)
+            {
+                for (j = 0; j < selColumnAmount; j++)
+                {
+                    index = i * selColumnAmount + j;
+                    resultColumnValue[index] = resultColumnValue[index-selColumnAmount]->next;
+                }
+                if (resultColumnValue[index]->next == NULL)
+                    break;
+            }
+        return i;
+    }
     for (i = 0; i < MAX; i++)
     {
         andRowAmount[i] = columnAmount;
         for (j = 0; j < columnAmount; j++)
             andRowNumber[i][j] = j;
     }
+
 
     Condition *conditionTra = condition;
     Condition *prior = condition;
@@ -328,12 +349,12 @@ static int betweenOperation(Data data, Value *value)
     switch (value[0].columnType)
     {
     case INT:
-        result = (data.intValue > value[1].columnValue.intValue &&
-                  data.intValue < value[0].columnValue.intValue);
+        result = (data.intValue > value[0].columnValue.intValue &&
+                  data.intValue < value[1].columnValue.intValue);
         break;
     case FLOAT:
-        result = (data.floatValue > value[1].columnValue.floatValue &&
-                  data.floatValue < value[0].columnValue.floatValue);
+        result = (data.floatValue > value[0].columnValue.floatValue &&
+                  data.floatValue < value[1].columnValue.floatValue);
         break;
     default:
         break;
@@ -360,19 +381,31 @@ static int likeOperation(Data data, Value *value)
 }
 static int matchRegex(const char *string, const char *pattern)
 {
-    //const char *begin = pattern;
     if (*pattern == 0)
-        return 1;
-    if (*string == 0)
+    {
+        if (*string == 0)
+            return 1;
         return 0;
+    }
+
+    if (*string == 0)
+    {
+        if (!strcmp(pattern, "*"))
+            return 1;
+        return 0;
+    }
     if (*pattern != '*' && *pattern != '?')
+    {
         if (*string != *pattern)
-            return matchRegex(string+1, pattern);
+            return 0;
+        else
+            return matchRegex(string+1, pattern+1);
+    }
 
     if (*pattern == '?')
         return matchRegex(string+1, pattern+1);
 
-    return matchRegex(string, pattern+1);
+    return matchRegex(string+1, pattern) || matchRegex(string, pattern+1);
 }
 static int mergeAndOr(int (*andRowNumber)[ROW_MAX], int *andRowAmount, int andCount, int (*orRowNumber)[ROW_MAX],
                       int *orRowAmount, int orCount, int *resultRowNumber)

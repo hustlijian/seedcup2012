@@ -29,10 +29,12 @@ static int updateData(ColumnValue **columnsValue, COLUMN_TYPE *columnType, Value
               int size);
 static int isSameValue(ColumnValue *columnValue, Value oldValue);
 static void assignData(ColumnValue *columnValue, Value newValue);
+static int getColumnNumber(Table *table, Column *column);
 static int hasNoneType(Column **allColumn, int size);
 static void initCurrent(Column **allColumn, ColumnValue **current, int size);
 static void deleteFirstNode(Column **allColumn, int size);
-static void deleteNode(ColumnValue **current, ColumnValue **prior, int size);
+static void freeColumnValue(ColumnValue *columnValue, int isText);
+static void deleteNode(ColumnValue **current, ColumnValue **prior, int size, int isText);
 static void moveAllColumnPointer(ColumnValue **current, ColumnValue **prior, int size);
 static int getInsertedColumnPos(Table *table, int *position, char **columnsName, int size);
 static int insertColumnsValue(Column **columns, int columnSize, int *insertedColumnPos,
@@ -77,6 +79,7 @@ int update(UpdateBody *updateBody)
     int findColumnValue;
     int result = 0;
     int i;
+    int haveFoundOne = 0;
 
     if (updatedColumn->columnType != updateBody->oldValue.columnType) //ÀàÐÍ²»Æ¥Åä
         return -1;
@@ -84,13 +87,18 @@ int update(UpdateBody *updateBody)
     {
         findColumnValue = isSameValue(columnValueTra, updateBody->oldValue);
         if (findColumnValue)
+        {
             result = updateData(columnsValue, columnType, updateBody->newValues,
                                 size);
+            haveFoundOne = 1;
+        }
 
          for (i = 0; i < size; i++)
             columnsValue[i] = columnsValue[i]->next;
         columnValueTra = columnValueTra->next;
     }
+    if (!haveFoundOne)
+        return -1;
     return result;
 }
 int delete(char *tableName, char *columnName, Value value)
@@ -108,27 +116,34 @@ int delete(char *tableName, char *columnName, Value value)
     if (hasNoneType(allColumn, size))
         return -1;
 
-    ColumnValue *columnValueTra = column->columnValueHead;
+    int columnNmber = getColumnNumber(table, column);
     ColumnValue *current[SIZE];
     ColumnValue *prior[SIZE];
     int atFirstNode = 1;
+    int haveFoundOne = 0;
+    int result = 0;
 
     initCurrent(allColumn, current, size);
 
-    while (columnValueTra != NULL)
+    while (current[columnNmber] != NULL)
     {
-        if (isSameValue(columnValueTra, value))
+        result = isSameValue(current[columnNmber], value);
+        if (result)
         {
+            haveFoundOne = 1;
             if (atFirstNode)
                 deleteFirstNode(allColumn, size);
             else
-                deleteNode(current, prior, size);
+                deleteNode(current, prior, size, value.columnType==TEXT);
         }
         else
+        {
             atFirstNode = 0;
-        moveAllColumnPointer(current, prior, size);
-        columnValueTra = columnValueTra->next;
+            moveAllColumnPointer(current, prior, size);
+        }
     }
+    if (!haveFoundOne)
+        return -1;
     return 0;
 }
 int insert(char *tableName, char **columnsName, Value *values, int amount)
@@ -142,7 +157,6 @@ int insert(char *tableName, char **columnsName, Value *values, int amount)
     size = getAllColumn(table, allColumn, SIZE);
     if (amount > size)
         return -1;
-
 
     int insertedColumnPos[amount];
     int hasBadColumnName = 0;
@@ -174,12 +188,10 @@ static int handleInnerSelect(SelectBody *selectBody)
     if (rowAmount == -1)
         return -1;
     if (rowAmount != 1)
-    {
         selectBody->resultValue->columnType = EMPTY;
-        return 0;
-    }
-    assignValue(selectBody->resultValue, resultColumnsValue->data,
-                selectedColumn->columnType);
+    else
+        assignValue(selectBody->resultValue, resultColumnsValue->data,
+                    selectedColumn->columnType);
     return 0;
 }
 static void assignValue(Value *value, Data data, COLUMN_TYPE columnType)
@@ -331,6 +343,7 @@ static void sortStringArray(char **stringArray, int rowAmount, int columnAmount,
 
     int i, j;
     int finalOrder[rowAmount];
+
     for (i = 0; i < rowAmount; i++)
         finalOrder[i] = i;
 
@@ -513,6 +526,18 @@ int getAllColumn(Table *table, Column **allColumn, int maxSize)
     }
     return count;
 }
+static int getColumnNumber(Table *table, Column *column)
+{
+    Column *columnTra = table->columnHead;
+    int count = 0;
+    while (columnTra != NULL && columnTra != column)
+    {
+        count++;
+        columnTra = columnTra->next;
+    }
+    return count;
+
+}
 static int hasNoneType(Column **allColumn, int size)
 {
     int i;
@@ -532,19 +557,33 @@ static void initCurrent(Column **allColumn, ColumnValue **current, int size)
 static void deleteFirstNode(Column **allColumn, int size)
 {
     int i;
-    ColumnValue *column;
+    ColumnValue *columnValue;
     for (i = 0; i < size; i++)
     {
-        column = allColumn[i]->columnValueHead;
-        allColumn[i]->columnValueHead = column->next;
+        columnValue = allColumn[i]->columnValueHead;
+        allColumn[i]->columnValueHead = columnValue->next;
+        freeColumnValue(columnValue, allColumn[i]->columnType==TEXT);
     }
 
 }
-static void deleteNode(ColumnValue **current, ColumnValue **prior, int size)
+static void freeColumnValue(ColumnValue *columnValue, int isText)
+{
+    if (isText)
+        free(columnValue->data.textValue);
+    free(columnValue);
+}
+static void deleteNode(ColumnValue **current, ColumnValue **prior, int size, int isText)
 {
     int i;
+    ColumnValue *temp;
     for (i = 0; i < size; i++)
-        prior[i]->next = current[i]->next;
+    {
+        temp = current[i];
+        current[i] = current[i]->next;
+        prior[i]->next = current[i];
+        freeColumnValue(temp, isText);
+    }
+
 }
 static void moveAllColumnPointer(ColumnValue **current, ColumnValue **prior, int size)
 {
