@@ -197,12 +197,9 @@ static int handleInnerSelect(SelectBody *selectBody)
     int rowAmount;
     rowAmount = getResultColumnValue(table, &selectedColumn, 1, &resultColumnsValue,
                                      selectBody->condition, 1);
-    if (rowAmount == -1 || rowAmount > 1)
+    if (rowAmount != 1)
         return -1;
-    if (rowAmount == 0)
-        selectBody->resultValue->columnType = EMPTY;
-    else
-        assignValue(selectBody->resultValue, resultColumnsValue->data,
+    assignValue(selectBody->resultValue, resultColumnsValue->data,
                     selectedColumn->columnType);
     return 0;
 }
@@ -219,7 +216,7 @@ static void assignValue(Value *value, Data data, COLUMN_TYPE columnType)
         break;
     case TEXT:
         value->columnValue.textValue = calloc(LENGTH, sizeof(char));
-        strncpy(value->columnValue.textValue, data.textValue, LENGTH);
+        strncpy(value->columnValue.textValue, data.textValue, LENGTH-1);
         break;
     default:
         break;
