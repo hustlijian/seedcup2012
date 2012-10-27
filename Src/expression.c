@@ -77,7 +77,7 @@ char Gettop2(OSS *s, char *ch)
 {
 	if(!Empty2(s))
 	{
-		printf("\nOSS empty\n");
+		//printf("\nOSS empty\n");
 		return -1;
 	}
 	else 
@@ -91,7 +91,7 @@ int Gettop21(OSS *s, int *i)
 {
 	if(!Empty2(s))  
 	{
-		printf("\nOSS empty\n");
+		//printf("\nOSS empty\n");
 		return -1;
 	}
 	else 
@@ -105,7 +105,7 @@ int Gettop1(ORS *s, float *flt)
 {
 	if(!Empty1(s))  
 	{
-		printf("\nORS empty\n");
+		//printf("\nORS empty\n");
 		return -1;
 	}
 	else 
@@ -119,7 +119,7 @@ int Pop2(OSS *s)
 {
 	if(!Empty2(s)) 
 	{
-		printf("\nOSS empty\n");
+		//printf("\nOSS empty\n");
 		return -1;
 	}
 	else 
@@ -133,7 +133,7 @@ int Pop1(ORS *s)
 {
 	if(!Empty1(s)) 
 	{
-		printf("\nORS empty\n");
+		//printf("\nORS empty\n");
 		return -1;
 	}
 	else 

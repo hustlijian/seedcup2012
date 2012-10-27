@@ -1136,7 +1136,7 @@ int setWhere(Condition *condition)
 	{
 		num = 0; //(µÄÊýÄ¿
 		i=0;
-		
+		while(isspace(p[i])) i++;
 		do{
 			expStr[i]=p[i];
 			if (p[i]=='(')

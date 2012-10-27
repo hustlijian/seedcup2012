@@ -1,6 +1,3 @@
-/*
- *用来测试API调用
-*/
 #include <stdio.h>
 #include "DatabaseAPI.h"
 
@@ -144,6 +141,8 @@ int renameTable(char *oldName, char *newName)
 void showValue(Value *value)
 {
 	printf("columnType = ");
+	if (value == NULL)
+		return ;
 	switch(value->columnType)
 	{
 	case  INT:
@@ -171,13 +170,6 @@ void showValue(Value *value)
 void showCondition(Condition *condition)
 {
 	printf("columnName = %s\n", condition->columnName);
-	printf("value:\n");
-	showValue(&(condition->value));
-	if (condition->operator == BETWEEN)
-	{
-		printf("value2:\n");
-		showValue(&(condition->value2));
-	}
 	switch(condition->operator)
 	{
 	case EQ:
@@ -208,6 +200,13 @@ void showCondition(Condition *condition)
 		printf("default\n");
 		break;
 	}
+	showValue(&(condition->value));
+	if (condition->operator == BETWEEN)
+	{
+		printf("value2:\n");
+		showValue(&(condition->value2));
+	}
+	
 	switch(condition->logic)
 	{
 	case OR:
@@ -231,16 +230,26 @@ int select(SelectBody *selectBody)
 	int i;
 	Condition  *p;
 	printf("function: select\n");
+	printf("selcet:  %s\n\n", selectBody->isInner?"in":"out");
 	printf("tableName:%s\n", selectBody->tableName);
 	printf("columnAmount = %d\n", selectBody->columnAmount);
 	for (i=0;i<selectBody->columnAmount;i++)
-	{
 		printf("columnsName[i] = %s\n", selectBody->columnsName[i]);
-		printf("resultValue[i]\n");
-		showValue(&(selectBody->resultValue[i]));
-	}
-	printf("%s\n", selectBody->isInner?"in":"out");
-	printf("sortColumnName= %s\n", selectBody->sortColumnName);
+
+	
+	printf("condition:\n");
+	if (selectBody->condition != NULL) {
+		showCondition(selectBody->condition);
+		for (p=selectBody->condition->next; p; p = p->next)
+			showCondition(p);
+	} else
+		printf("no condition!\n");
+
+	
+	
+	if (selectBody->sortColumnName != NULL)
+		printf("sortColumnName= %s\n", selectBody->sortColumnName);
+	else printf("no sort!\n");
 	switch(selectBody->sortOrder)
 	{
 	case NOTSORT:
@@ -254,12 +263,6 @@ int select(SelectBody *selectBody)
 		break;
 	default:
 		break;
-	}
-	printf("condition:\n");
-	showCondition(selectBody->condition);
-	for (p=selectBody->condition->next; p; p = p->next)
-	{
-		showCondition(p);
 	}
 	return 0;
 }
@@ -297,7 +300,8 @@ int insert(char *tableName, char **columnsName, Value *values, int amount)
 	printf("amount = %d\n", amount);
 	for (i=0;i<amount;i++)
 	{
-		printf("columnsName[i] = %s\n", columnsName[i]);
+		if (columnsName != NULL)
+			printf("columnsName[i] = %s\n", columnsName[i]);
 		showValue(&values[i]);
 	}
 	return 0;
