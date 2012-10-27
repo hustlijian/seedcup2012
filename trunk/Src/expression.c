@@ -2,6 +2,7 @@
 #include <STDLIB.H>
 #include <STRING.H>
 #include <MATH.H>
+#include <CTYPE.H>
 #include "expression.h"
 
 SeqList *L[Max];
@@ -13,7 +14,7 @@ void Insert(SeqList *L, char a, int i)
 	if(a == '.') 
 	{
 		jTemp = i;
-		L->List[jTemp] = 48;
+		L->List[jTemp] = 48;	//0
 	}
 	kTemp = i;
 }
@@ -26,7 +27,7 @@ float Ret(SeqList *L)
 	if(jTemp == 0)  
 		while(i <= kTemp) 
 		{
-			t = t + (L->List[i] - 48) * (float)(pow(10, kTemp - i)); 
+			t = t + (L->List[i] - '0') * (float)(pow(10, kTemp - i)); 
 			i++;
 		}
 	else 
@@ -77,7 +78,6 @@ char Gettop2(OSS *s, char *ch)
 {
 	if(!Empty2(s))
 	{
-		//printf("\nOSS empty\n");
 		return -1;
 	}
 	else 
@@ -91,7 +91,6 @@ int Gettop21(OSS *s, int *i)
 {
 	if(!Empty2(s))  
 	{
-		//printf("\nOSS empty\n");
 		return -1;
 	}
 	else 
@@ -105,7 +104,6 @@ int Gettop1(ORS *s, float *flt)
 {
 	if(!Empty1(s))  
 	{
-		//printf("\nORS empty\n");
 		return -1;
 	}
 	else 
@@ -119,7 +117,6 @@ int Pop2(OSS *s)
 {
 	if(!Empty2(s)) 
 	{
-		//printf("\nOSS empty\n");
 		return -1;
 	}
 	else 
@@ -133,7 +130,6 @@ int Pop1(ORS *s)
 {
 	if(!Empty1(s)) 
 	{
-		//printf("\nORS empty\n");
 		return -1;
 	}
 	else 
@@ -143,7 +139,7 @@ int Pop1(ORS *s)
 	}
 }
 
-void Push2(OSS *s, char x, int y ) 
+void Push2(OSS *s, char x, int y ) //操作符入栈
 {
 	s->top++;
 	s->List1[s->top].a = x;
@@ -163,6 +159,7 @@ int calExpression(char *A, float *result)
 	char *s = A, c, chTemp;
 	float a, b, f, fTemp;
 	int i = 0, h, w, iTemp;
+	int negFlag = 0;
 
 	strcat(s, ";");
 	q = (OSS *)malloc(sizeof(OSS));
@@ -186,7 +183,7 @@ int calExpression(char *A, float *result)
 				break;
 			case '-':
 			case '+':
-				w = 2;
+					w = 2;
 				break;
 			case '/':
 			case '*':
@@ -219,7 +216,7 @@ int calExpression(char *A, float *result)
 					return -1;
 				*s++;
 			}
-			else if ( w <= iTemp) 
+			else if ( w <= iTemp && isdigit(*(s-1))) 
 			{
 				if (Gettop1(p, &fTemp))
 					return -1;
@@ -253,7 +250,9 @@ int calExpression(char *A, float *result)
 					f = a / b;
 					break;
 				case '%' :
-					if(!b)
+					if((int)a != a)		//a不能为非整数
+						return -1;
+					if(!b)				//b不能为0
 						return -1;
 					f = (float)((int)(a) % (int)(b));
 					break;
@@ -263,17 +262,37 @@ int calExpression(char *A, float *result)
 				}
 				Push1(p, f);
 			}
+			else
+			{
+				Push2(q, *s, w);
+				*s++;
+			}
 		} 
 		else 
 		{
 			h = 0;
 			L[i] = (SeqList *)malloc(sizeof(SeqList));
-			while(*s >= 48 && *s <= 57 || *s == 46 )      
+			if (*(s-1) == '+' && !isdigit(*(s-2)))
+			{
+				Pop2(q);
+			}
+			else if (*(s-1) == '-' && !isdigit(*(s-2)))
+			{
+				Pop2(q);
+				negFlag = 1;
+			}
+			while(isdigit(*s) || *s == '.' )      
 			{
 				Insert(L[i], *s, h++ );
 				*s++;
 			}
-			Push1(p, Ret(L[i]));
+			if (negFlag == 1)		//-8这类
+			{
+				Push1(p, 0-Ret(L[i]));	//压入操作数
+				negFlag = 0;
+			}
+			else
+				Push1(p, Ret(L[i]));	
 			i++;
 		}
 	}
