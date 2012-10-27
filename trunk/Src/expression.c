@@ -220,14 +220,20 @@ int calExpression(char *A, float *result)
 			{
 				if (Gettop1(p, &fTemp))
 					return -1;
-				b = fTemp;
-				if(Pop1(p))
-					return -1;
-				if (Gettop1(p, &fTemp))
-					return -1;
-				a = fTemp;
-				if(Pop1(p))
-					return -1;
+				else
+				{
+					b = fTemp;
+					if(Pop1(p))
+						return -1;
+				}
+				if (Gettop1(p, &fTemp))	//隐患处
+					a = 0;//return -1;
+				else
+				{
+					a = fTemp;
+					if(Pop1(p))
+						return -1;
+				}
 				if (Gettop2(q, &chTemp))
 					return -1;
 				c = chTemp;
@@ -289,7 +295,7 @@ int calExpression(char *A, float *result)
 				Insert(L[i], *s, h++ );
 				*s++;
 			}
-			if (negFlag == 1)		//-8这类
+			if (negFlag == 1)			//-8这类
 			{
 				Push1(p, 0-Ret(L[i]));	//压入操作数
 				negFlag = 0;
