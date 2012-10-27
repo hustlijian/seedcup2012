@@ -64,6 +64,9 @@ int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmo
             }
         return i;
     }
+    if (condition->value.columnType == EMPTY)
+        return 0;
+
     for (i = 0; i < MAX; i++)
     {
         andRowAmount[i] = columnAmount;
@@ -244,6 +247,7 @@ static int eqOperation(Data data, Value *value)
         result = !strcmp(data.textValue, value[0].columnValue.textValue);
         break;
     default:
+        result = -1;
         break;
     }
     return result;
@@ -263,6 +267,7 @@ static int neOperation(Data data, Value *value)
         result = strcmp(data.textValue, value[0].columnValue.textValue);
         break;
     default:
+        result = -1;
         break;
     }
     return result;
@@ -346,6 +351,8 @@ static int letOperation(Data data, Value *value)
 static int betweenOperation(Data data, Value *value)
 {
     int result = 0;
+    if (value[0].columnType != value[1].columnType)
+        return -1;
     switch (value[0].columnType)
     {
     case INT:

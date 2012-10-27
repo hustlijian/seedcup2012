@@ -107,7 +107,7 @@ int delete(char *tableName, char *columnName, Value value)
     Column *column = searchColumn(table, columnName, NULL);
     if (column == NULL)
         return -1;
-    if (column->columnType != value.columnType) //类型不匹配
+    if (value.columnType == EMPTY || column->columnType != value.columnType) //类型不匹配
         return -1;
 
     Column *allColumn[SIZE];
@@ -177,7 +177,19 @@ int insert(char *tableName, char **columnsName, Value *values, int amount)
 static int handleInnerSelect(SelectBody *selectBody)
 {
     Table *table = searchTable(selectBody->tableName);
-    Column *selectedColumn = searchColumn(table, selectBody->columnsName[0], NULL);
+    int columnAmount;
+    char *columnName;
+
+    if (selectBody->columnsName == NULL)
+    {
+        columnAmount = getColumnAmount(table);
+        if (columnAmount != 1)
+            return -1;
+        columnName = table->columnHead->columnName;
+    } else {
+        columnName = selectBody->columnsName[0];
+    }
+    Column *selectedColumn = searchColumn(table, columnName, NULL);
     if (selectedColumn == NULL)
         return -1;
 
@@ -185,9 +197,9 @@ static int handleInnerSelect(SelectBody *selectBody)
     int rowAmount;
     rowAmount = getResultColumnValue(table, &selectedColumn, 1, &resultColumnsValue,
                                      selectBody->condition, 1);
-    if (rowAmount == -1)
+    if (rowAmount == -1 || rowAmount > 1)
         return -1;
-    if (rowAmount != 1)
+    if (rowAmount == 0)
         selectBody->resultValue->columnType = EMPTY;
     else
         assignValue(selectBody->resultValue, resultColumnsValue->data,
