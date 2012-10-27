@@ -761,9 +761,11 @@ int getValue(Value *value)
 		
 		value->columnValue.textValue = str;
 		return 0;
-	} else if (syn == SYN_PAREN_LEFT)//(
+	} else if (syn == SYN_PAREN_LEFT || syn == SYN_SELECT)//(
 	{
-		scaner();
+		if (syn == SYN_PAREN_LEFT)
+			scaner();
+		
 		if (syn==SYN_SELECT)//select
 		{
 			num = 1; //(的数目
@@ -775,7 +777,7 @@ int getValue(Value *value)
 				if (p[i]==')')
 					num--;
 			}
-			
+			innerSelect[i-1]=';';
 			innerSelect[i]='\0';
 			temp = p+i;
 			p = innerSelect;
@@ -1085,7 +1087,7 @@ int insertCmd()
 			if (values[i].columnType==EMPTY)
 				continue;
 			scaner();
-			if (syn == SYN_PAREN_RIGHT)//)
+			if (syn == SYN_PAREN_RIGHT || syn == SYN_SEMICOLON)//),;
 				break;
 			if (syn != SYN_COMMA)//,
 				return -1;
@@ -1094,11 +1096,11 @@ int insertCmd()
 			return -1;
 		else 
 			amount = i;
-		if (syn!=SYN_PAREN_RIGHT)//)
+		if (syn!=SYN_PAREN_RIGHT && syn != SYN_SEMICOLON)//)
 			return -1;
 	}
 
-	if (!checkEnd())//确认命令结束
+	if ((syn != SYN_SEMICOLON) && !checkEnd())//确认命令结束
 		return -1;
 
 	if (colFlag)//all the columns
@@ -1296,18 +1298,15 @@ int selectCmd(int isInner, Value *resultValue)
 		if (setWhere(&conditon))
 			return -1;
 		selectBody.condition = &conditon; //设置选择条件
-		if (!isInner)//外层
-		{
-			scaner();
-			if (syn==SYN_ORDER){
-				if (setSort(&sortOrder, sortColumnName))
-					return -1;
-				scaner();
-			}else
-				sortOrder = NOTSORT;
-			if (syn!=SYN_SEMICOLON)//end
+		scaner();
+		if (syn==SYN_ORDER){
+			if (setSort(&sortOrder, sortColumnName))
 				return -1;
-		}
+			scaner();
+		}else
+			sortOrder = NOTSORT;
+		if (syn!=SYN_SEMICOLON)//end
+			return -1;
 	} else if (syn == SYN_ORDER)//order
 	{
 		selectBody.condition = NULL;//没有条件
@@ -1319,7 +1318,7 @@ int selectCmd(int isInner, Value *resultValue)
 		selectBody.condition = NULL;
 		sortOrder  = NOTSORT;
 	}
-
+ 
 	//todo:select
 	selectBody.tableName = tableName;
 	if (sortOrder == NOTSORT)
@@ -1395,7 +1394,7 @@ int processCmd(char *cmd)
 			flag = -1;
 			break;
 		}
-	if (!syn) //end
+	if (!syn || flag==-1) //end
 		break;
 	}
 	return flag;
@@ -1408,15 +1407,15 @@ int logicalExpProc(char *expStr, Condition **expList)
 {
 	LogicExpStack lExpTmpStk, lExpPloStk;
 	LogicExpStack lExpRevPloStk, lExpRevPloStk2;
-	Value val;
-	char *e, *eTemp;
-	int w, wTemp, i;
+	char *e;
+	int w, i;
 	Condition *locHeadList, *locTailList;
 
 	locHeadList = (Condition *)malloc(sizeof(Condition));
 	locTailList = locHeadList;
 	locTailList->next = NULL;
 	*expList = locHeadList;
+	//e = (char *)calloc(NAME_MAX, sizeof(char));
 	if(logicalExpStkInit(&lExpTmpStk))
 		return -1;
 	if (logicalExpStkInit(&lExpPloStk))
@@ -1464,16 +1463,14 @@ int logicalExpProc(char *expStr, Condition **expList)
 					{
 						if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
 							return -1;
-						if(logicalExpStkGetTop(&lExpPloStk, &eTemp, &wTemp))
+						if(logicalExpStkGetTop(&lExpPloStk, &e, &w))
 							return -1;
-						while (3 <= w && wTemp != 1)
+						while (w >= 3 && strcmp(e, "("))
 						{
 							if(logicalExpStkPop(&lExpTmpStk, &e, &w))
 								return -1;
 							logicalExpStkPush(&lExpPloStk, e, 3);
 							if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
-								return -1;
-							if(logicalExpStkGetTop(&lExpPloStk, &eTemp, &wTemp))
 								return -1;
 						}
 					}
@@ -1486,39 +1483,10 @@ int logicalExpProc(char *expStr, Condition **expList)
 				break;
 			}
 		}
-		else if(SYN_QUOTE != syn && SYN_BRACKET_LEFT != syn &&//操作数，即条件，压入lExpPloStk栈
+		else	//操作数，即条件，压入lExpPloStk栈
+			if(SYN_QUOTE != syn && SYN_BRACKET_LEFT != syn &&
 				SYN_BRACKET_RIGHT != syn && SYN_COMMA != syn)
-		{
-			if(SYN_SELECT == syn)//select语句
-			{
-				--p;
-				getValue(&val);
-				switch(val.columnType)
-				{
-				case INT:
-					 itoa(val.columnValue.intValue, word, 10);
-					break;
-				case FLOAT:
-					sprintf(word, "%f", val.columnValue.floatValue);
-				case TEXT:
-					i = 0;
-					do 
-					{
-						if(!isalnum(val.columnValue.textValue[i]) &&
-							val.columnValue.textValue[i]!=' ' &&
-							val.columnValue.textValue[i] != '_')
-						{	//必须是字符数字，或者空格，下划线 
-							return -1;
-						}
-						word[i] = val.columnValue.textValue[i];
-						i++;
-						
-					} while (val.columnValue.textValue[i]);
-					word[i] = '\0';
-				}
-			}
-			logicalExpStkPush(&lExpPloStk, word, 4);
-		}
+				logicalExpStkPush(&lExpPloStk, word, 4);
 	}
 	if(logicalExpStkPop(&lExpTmpStk, &e, &w))
 		return -1;
@@ -1567,6 +1535,12 @@ int logicalExpProc(char *expStr, Condition **expList)
 				do 
 				{
 					locTailList->value.columnValue.textValue[i] = e[i];
+					if(!isalnum(locTailList->value.columnValue.textValue[i]) &&
+						locTailList->value.columnValue.textValue[i]!=' ' &&
+						locTailList->value.columnValue.textValue[i] != '_')
+					{	//必须是字符数字，或者空格，下划线 
+						return -1;
+					}
 					i++;
 
 				} while (e[i]);
