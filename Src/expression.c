@@ -216,7 +216,7 @@ int calExpression(char *A, float *result)
 					return -1;
 				*s++;
 			}
-			else if ( w <= iTemp && isdigit(*(s-1))) 
+			else if ( w <= iTemp && (isdigit(*(s-1)) || *(s-1) == '(' || *(s-1) == ')')) 
 			{
 				if (Gettop1(p, &fTemp))
 					return -1;
@@ -259,7 +259,10 @@ int calExpression(char *A, float *result)
 				case '^' :
 					f = (float)pow(a, b);
 					break;
+				default:
+					return -1;
 				}
+				c = '\0';
 				Push1(p, f);
 			}
 			else
@@ -296,6 +299,9 @@ int calExpression(char *A, float *result)
 			i++;
 		}
 	}
+
+	if (p->top != 0)
+		return -1;
 
 	return 0;
 }
