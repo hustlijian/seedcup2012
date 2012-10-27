@@ -1322,7 +1322,7 @@ int selectCmd(int isInner, Value *resultValue)
 	if (select(&selectBody))
 		return -1;
 	
-	if (resultValue!=NULL)
+	if (resultValue!=NULL && !isInner)
 		freeValue(resultValue);
 	for (temp=selectBody.condition; temp!=NULL; temp=temp->next)
 		freeValue(&(temp->value));
