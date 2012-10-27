@@ -256,7 +256,7 @@ int checkName(char *str)
 int checkEnd()
 {
 	scaner();
-	if (syn==SYN_SEMICOLON)
+	if (syn==SYN_SEMICOLON || word[0]=='\0')
 		return 1;
 	return 0;
 }
@@ -767,24 +767,9 @@ int getValue(Value *value)
 			scaner();
 		
 		if (syn==SYN_SELECT)//select
-		{
-			num = 1; //(的数目
-			for (i=0;num>0;i++)
-			{
-				innerSelect[i]=p[i];
-				if (p[i]=='(')
-					num++;
-				if (p[i]==')')
-					num--;
-			}
-			innerSelect[i-1]=';';
-			innerSelect[i]='\0';
-			temp = p+i;
-			p = innerSelect;
+		{		
 			if (selectCmd(1, value))//内部查询
 				return -1;
-			
-			p = temp;
 		} else if (syn==SYN_INTEGER_NUMBER || syn== SYN_FLOAT_NUMBER || 
 			syn == SYN_PAREN_LEFT || syn == SYN_MIMUS || syn== SYN_ADD)//int,float,(,-,+
 		{
@@ -1256,6 +1241,7 @@ int selectCmd(int isInner, Value *resultValue)
 	SORT_ORDER sortOrder = NOTSORT;
 	Condition conditon;
 	Condition *temp;
+	char *q;
 
 	scaner();
 	if (syn==SYN_MULT) //*
@@ -1298,6 +1284,7 @@ int selectCmd(int isInner, Value *resultValue)
 		if (setWhere(&conditon))
 			return -1;
 		selectBody.condition = &conditon; //设置选择条件
+		q = p;
 		scaner();
 		if (syn==SYN_ORDER){
 			if (setSort(&sortOrder, sortColumnName))
@@ -1305,8 +1292,10 @@ int selectCmd(int isInner, Value *resultValue)
 			scaner();
 		}else
 			sortOrder = NOTSORT;
-		if (syn!=SYN_SEMICOLON)//end
+		if (!isInner && syn!=SYN_SEMICOLON)//end
 			return -1;
+		if (isInner && syn != SYN_BRACKET_RIGHT)//)
+			p = q;
 	} else if (syn == SYN_ORDER)//order
 	{
 		selectBody.condition = NULL;//没有条件
