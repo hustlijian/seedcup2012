@@ -1294,7 +1294,7 @@ int selectCmd(int isInner, Value *resultValue)
 			sortOrder = NOTSORT;
 		if (!isInner && syn!=SYN_SEMICOLON)//end
 			return -1;
-		if (isInner && syn != SYN_BRACKET_RIGHT)//)
+		if (isInner && syn != SYN_PAREN_RIGHT)//)
 			p = q;
 	} else if (syn == SYN_ORDER)//order
 	{
