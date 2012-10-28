@@ -9,8 +9,9 @@
 
 extern int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmount,
                    ColumnValue **resultColumnValue, Condition *condition, int isInner);
-extern int getColumnAmount(Table *table);
+
 static int handleInnerSelect(SelectBody *selectBody);
+static int getColumnAmount(Table *table);
 static int handleOuterSelect(SelectBody *selectBody);
 static void assignValue(Value *value, Data data, COLUMN_TYPE columnType);
 static void outputResult(ColumnValue **columnsValue, COLUMN_TYPE *columnType, int columnAmount,
@@ -202,6 +203,16 @@ static int handleInnerSelect(SelectBody *selectBody)
     assignValue(selectBody->resultValue, resultColumnsValue->data,
                     selectedColumn->columnType);
     return 0;
+}
+static int getColumnAmount(Table *table)
+{
+    if (table == NULL)
+        return 0;
+    Column *columnTra = table->columnHead;
+    int i;
+    for (i = 0; columnTra != NULL; i++)
+        columnTra = columnTra->next;
+    return i;
 }
 static void assignValue(Value *value, Data data, COLUMN_TYPE columnType)
 {
