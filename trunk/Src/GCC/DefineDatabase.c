@@ -53,14 +53,14 @@ int createDatabase(char *databaseName)
     {
         while (traverse->next != NULL)
         {
-            if (!strcasecmp(databaseName, traverse->databaseName))
+            if (!mystrcmp(databaseName, traverse->databaseName))
             {
                 free(newDatabase);
                 return -1;
             }
             traverse = traverse->next;
         }
-        if (!strcasecmp(databaseName, traverse->databaseName))
+        if (!mystrcmp(databaseName, traverse->databaseName))
         {
             free(newDatabase);
             return -1;
@@ -95,14 +95,14 @@ int createTable(char *tableName, char **columnsName,
     {
         while (traverse->next != NULL)
         {
-            if (!strcasecmp(tableName, traverse->tableName))
+            if (!mystrcmp(tableName, traverse->tableName))
             {
                 free(newTable);
                 return -1;
             }
             traverse = traverse->next;
         }
-        if (!strcasecmp(tableName, traverse->tableName))
+        if (!mystrcmp(tableName, traverse->tableName))
         {
             free(newTable);
             return -1;
@@ -161,14 +161,14 @@ int addColumn(char *tableName, char *columnName,
     {
         while (columnTraverse->next != NULL)
         {
-            if (!strcasecmp(columnName, columnTraverse->columnName))
+            if (!mystrcmp(columnName, columnTraverse->columnName))
             {
                 free(newColumn);
                 return -1;
             }
             columnTraverse = columnTraverse->next;
         }
-        if (!strcasecmp(columnName, columnTraverse->columnName))
+        if (!mystrcmp(columnName, columnTraverse->columnName))
         {
             free(newColumn);
             return -1;
@@ -352,7 +352,7 @@ Table *searchTable(char *tableName)
     if (currentDatabase == NULL)
         return NULL;
     Table *traverse = currentDatabase->tableHead;
-    while (traverse != NULL && strcasecmp(traverse->tableName,
+    while (traverse != NULL && mystrcmp(traverse->tableName,
                                       tableName))
         traverse = traverse->next;
     return traverse;
@@ -364,7 +364,7 @@ Column *searchColumn(Table *table, char *columnName, Column **prior)
 
     Column *columnTraverse = table->columnHead;
     Column *priorTra = table->columnHead;
-    while (columnTraverse != NULL && strcasecmp(columnTraverse->columnName, columnName))
+    while (columnTraverse != NULL && mystrcmp(columnTraverse->columnName, columnName))
     {
         priorTra = columnTraverse;
         columnTraverse = columnTraverse->next;
@@ -475,7 +475,7 @@ static int dropOneTable(char *databaseName, char *tableName)
 
     while (tableTraverse != NULL)
     {
-        if (!strcasecmp(tableName, tableTraverse->tableName))
+        if (!mystrcmp(tableName, tableTraverse->tableName))
             break;
         prior = tableTraverse;
         tableTraverse = tableTraverse->next;
@@ -498,7 +498,7 @@ Database *searchDatabase(char *databaseName, Database **prior)
     Database *priorTra = head;
     while (databaseTra != NULL)
     {
-        if (!strcasecmp(databaseTra->databaseName, databaseName))
+        if (!mystrcmp(databaseTra->databaseName, databaseName))
            break;
         priorTra = databaseTra;
         databaseTra = databaseTra->next;

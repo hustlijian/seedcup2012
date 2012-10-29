@@ -311,7 +311,7 @@ static int handleOuterSelect(SelectBody *selectBody)
     for (i = 0; i < columnAmount; i++)
     {
         columnType[i] = selectedColumns[i]->columnType;
-        if (sortByWhich < 0 && !strcasecmp(selectedColumns[i]->columnName, selectBody->sortColumnName))
+        if (sortByWhich < 0 && !mystrcmp(selectedColumns[i]->columnName, selectBody->sortColumnName))
             sortByWhich = i;
     }
     if (sortByWhich < 0)
@@ -495,7 +495,7 @@ static int getColumnsValue(Table *table, char **columnsName, ColumnValue **colum
         columnTra = columnHead;
         while (columnTra != NULL)
         {
-            if (!strcasecmp(columnsName[i], columnTra->columnName))
+            if (!mystrcmp(columnsName[i], columnTra->columnName))
             {
                 columnValue[i] = columnTra->columnValueHead;
                 columnType[i] = columnTra->columnType;
@@ -665,7 +665,7 @@ static int getInsertedColumnPos(Table *table, int *position, char **columnsName,
         while (columnTra != NULL)
         {
             //printf("%s\t%s\n", columnTra->columnName, columnsName[i]);
-            if (!strcasecmp(columnTra->columnName, columnsName[i]))
+            if (!mystrcmp(columnTra->columnName, columnsName[i]))
             {
                 position[i] = count;
                 break;
