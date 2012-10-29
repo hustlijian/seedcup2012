@@ -226,7 +226,7 @@ static void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType)
             printf("%d,", data.intValue);
             break;
         case FLOAT:
-            printf("%f,", data.floatValue);
+            printf("%.2f,", data.floatValue);
             break;
         case TEXT:
             printf("%s,", data.textValue);
