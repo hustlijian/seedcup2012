@@ -1,3 +1,14 @@
+ /**
+ * @file    DatabaseAPI.h
+ * @author  hzhigeng <hzhigeng@gmail.com>
+ * @version 1.0
+ *
+ * @section DESCRIPTION
+ *
+ * 语法解析与数据库底层操作之间的接口，提供给语法解析部分调用
+ *
+ */
+
 #ifndef DATABASEAPI_H_INCLUDED
 #define DATABASEAPI_H_INCLUDED
 
