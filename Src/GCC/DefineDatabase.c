@@ -112,7 +112,7 @@ int createTable(char *tableName, char **columnsName,
 
     int i;
     Column *newColumn;
-    Column *prior;
+    Column *prior = NULL;
     for (i = 0; i < columnAmount; i++)
     {
         newColumn = (Column *)calloc(1, sizeof(Column));
@@ -178,7 +178,7 @@ int addColumn(char *tableName, char *columnName,
 
     ColumnValue *columnValueTra = columnTraverse->columnValueHead;
     ColumnValue *newColumnValue = NULL;
-    ColumnValue *prior;
+    ColumnValue *prior = NULL;
 
     while (columnValueTra != NULL)
     {
