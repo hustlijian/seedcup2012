@@ -98,7 +98,7 @@ int isLgcExpOpt(char *str);
 //获取逻辑类型
 LOGIC getLogicType(char *str);
 //每次扫描获得一个词，和他的种别码
-void scaner();
+static void scaner();
 //判断是否是关键字
 int isKeywords(char *str);
 //判断是否满足名字要求，又字母下划线组成
