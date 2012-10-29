@@ -1,3 +1,14 @@
+/**
+ * @file	CmdProcess.c
+ * @author  lijian <hustlijian@gmail.com>
+ * @version 1.0
+ *
+ * @section DESCRIPTION
+ *
+ * 代码的解析部分，解析命令，调用对应的底层API
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -235,6 +246,10 @@ static void scaner()
 	if (*p=='\0')
 		p=NULL;
 }
+/*
+ *功能：
+ *		判断是否是关键字
+ */
 int isKeywords(char *str)
 {
 	int i;
@@ -243,7 +258,10 @@ int isKeywords(char *str)
 			return 1;
 	return 0;  //不是关键字
 }
-
+/*
+ *功能：
+ *		判断是否是符合条件的数据库名，表名，列名
+ */
 int checkName(char *str)
 {
 	int i;
@@ -252,7 +270,10 @@ int checkName(char *str)
 			return 0;
 	return 1;
 }
-//确认到达末尾
+/*
+ *功能：
+ *		确认到达末尾
+ */
 int checkEnd()
 {
 	scaner();
@@ -260,6 +281,10 @@ int checkEnd()
 		return 1;
 	return 0;
 }
+/*
+ *功能：
+ *		建立数据库命令
+ */
 int createDatabaseCmd()
 {
 	char databaseName[NAME_LENGHT];
@@ -277,6 +302,10 @@ int createDatabaseCmd()
 		return -1;
 	return 0;
 }
+/*
+ *功能：
+ *		建立表命令
+ */
 int createTableCmd()
 {
 	int countAmount, i;
@@ -346,7 +375,10 @@ int createTableCmd()
 		return -1;
 	return 0;
 }
-//建立数据库或者表
+/*
+ *功能：
+ *		建立数据库或者表
+ */
 int createCmd()
 {
 	scaner();
@@ -359,7 +391,10 @@ int createCmd()
 	} else 
 		return -1;
 }
-//添加列
+/*
+ *功能：
+ *		添加列
+ */
 int alterAddCmd(char *tableName)
 {
 	char columnName[NAME_LENGHT];
@@ -387,7 +422,10 @@ int alterAddCmd(char *tableName)
 		return -1;
 	return 0;		
 }
-//删除列
+/*
+ *功能：
+ *		删除列
+ */
 int alterRmCmd(char *tableName)
 {
 	char columnName[NAME_LENGHT];
@@ -408,7 +446,10 @@ int alterRmCmd(char *tableName)
 		return -1;
 	return 0;
 }
-//修改列类型
+/*
+ *功能：
+ *		修改列类型
+ */
 int alterAlterCmd(char *tableName)
 {
 	char columnName[NAME_LENGHT];
@@ -441,7 +482,10 @@ int alterAlterCmd(char *tableName)
 	return 0;	
 
 }
-//修改列
+/*
+ *功能：
+ *		修改列
+ */
 int alterCmd()
 {
 	char tableName[NAME_LENGHT];
@@ -469,8 +513,10 @@ int alterCmd()
 	}else 
 		return -1;
 }
-
-//清除表数据
+/*
+ *功能：
+ *		清除表数据
+ */
 int truncateCmd()
 {
 	char tableName[NAME_LENGHT];
@@ -491,7 +537,10 @@ int truncateCmd()
 		return -1;
 	return 0;
 }
-//指定数据库
+/*
+ *功能：
+ *		指定数据库
+ */
 int useCmd()
 {
 	char databaseName[NAME_LENGHT];
@@ -508,7 +557,10 @@ int useCmd()
 		return -1;
 	return 0;
 }
-//删除表或数据库
+/*
+ *功能：
+ *		删除表或数据库
+ */
 int dropCmd()
 {
 	char databaseName[NAME_LENGHT];
@@ -538,9 +590,12 @@ int dropCmd()
 			return -1;
 	return 0;
 }
-//重命名数据库
+/*
+ *功能：
+ *		重命名数据库
+ */
 int renameDatabaseCmd()
-{//renameDatabase(char *oldName, char *newName);
+{
 	char oldName[NAME_LENGHT];
 	char newName[NAME_LENGHT];
 
@@ -564,9 +619,12 @@ int renameDatabaseCmd()
 		return -1;
 	return 0;
 }
-//重命名表
+/*
+ *功能：
+ *		重命名表
+ */
 int renameTableCmd()
-{//renameTable(char *oldName, char *newName);
+{
 	char oldName[NAME_LENGHT];
 	char newName[NAME_LENGHT];
 	scaner();
@@ -589,7 +647,10 @@ int renameTableCmd()
 		return -1;
 	return 0;
 }
-//处理重命名
+/*
+ *功能：
+ *		处理重命名
+ */
 int renameCmd()
 {
 	scaner();
@@ -602,7 +663,10 @@ int renameCmd()
 	}
 	else return -1;
 }
-//确认排序的类型
+/*
+ *功能：
+ *		确认排序的类型
+ */
 int  checkSort(SORT_ORDER *sortOrder)
 {
 	scaner();
@@ -624,9 +688,12 @@ int  checkSort(SORT_ORDER *sortOrder)
 		return -1;
 	return 0;
 }
-//显示数据库
+/*
+ *功能：
+ *		显示数据库
+ */
 int showDatabaseCmd()
-{//showDatabase(SORT_ORDER sortOrder);
+{
 	SORT_ORDER sortOrder;
 
 	if (checkSort(&sortOrder))
@@ -638,7 +705,10 @@ int showDatabaseCmd()
 		return -1;
 	return 0;
 }
-//显示数据表格
+/*
+ *功能：
+ *		显示数据表格
+ */
 int showTableCmd(char *databaseName)
 {//showTable(char *databaseName,SORT_ORDER sortOrder);  //databaseName为NULL时指定为当前数据库
 	SORT_ORDER sortOrder;
@@ -652,7 +722,10 @@ int showTableCmd(char *databaseName)
 		return -1;
 	return 0;
 }
-//显示列名
+/*
+ *功能：
+ *		显示列名
+ */
 int showColumnCmd(char *tableName)
 {//showColumn(char *tableName, SORT_ORDER sortOrder);
 	SORT_ORDER sortOrder;
@@ -666,7 +739,10 @@ int showColumnCmd(char *tableName)
 		return -1;
 	return 0;
 }
-//处理显示
+/*
+ *功能：
+ *		处理显示
+ */
 int showCmd()
 {
 	char databaseName[NAME_LENGHT];
@@ -693,7 +769,10 @@ int showCmd()
 	else 
 		return -1;
 }
-//为value赋值
+/*
+ *功能：
+ *		为value赋值
+ */
 int getValue(Value *value)
 {
 	char *str;
@@ -797,7 +876,10 @@ int getValue(Value *value)
 		return -1;
 	return 0;
 } 
-//删除命令
+/*
+ *功能：
+ *		删除命令
+ */
 int deleteCmd()
 {//delete(char *tableName, char *column, Value value);
 	char tableName[NAME_LENGHT];
@@ -841,7 +923,10 @@ int deleteCmd()
 
 	return 0;
 }
-//处理update命令
+/*
+ *功能：
+ *		处理update命令
+ */
 int updateCmd()
 {//int update(UpdateBody *updateBOdy);
 	UpdateBody updateBody;
@@ -986,7 +1071,10 @@ int updateCmd()
 
 	return 0;
 }
-//处理insert命令
+/*
+ *功能：
+ *		处理insert命令
+ */
 int insertCmd()
 {//int insert(char *tableName, char **columnsName, Value *values, int amount);
 	char tableName[NAME_LENGHT];
@@ -1103,7 +1191,10 @@ int insertCmd()
 
 	return 0;
 }
-//有了Order命令，设置类型
+/*
+ *功能：
+ *		有了Order命令，设置类型
+ */
 int setSort(SORT_ORDER *sortOrder, char *sortColumn)
 {
 	scaner();
@@ -1125,7 +1216,10 @@ int setSort(SORT_ORDER *sortOrder, char *sortColumn)
 		return -1;
 	return 0;
 }
-//获得一个where的条件
+/*
+ *功能：
+ *		获得一个where的条件
+ */
 int setWhere(Condition **condition)
 {
 	char expStr[1024];
@@ -1220,7 +1314,10 @@ int setWhere(Condition **condition)
 	}
 	return 0;
 }
-//检查是否有or,and
+/*
+ *功能：
+ *		检查是否有or,and
+ */
 int checkLogic()
 {
 	char *temp = p;
@@ -1231,7 +1328,10 @@ int checkLogic()
 		return 1;
 	return 0;//没有
 }
-//处理select命令
+/*
+ *功能：
+ *		处理select命令
+ */
 int selectCmd(int isInner, Value *resultValue)
 {//int select(SelectBody *selectBody);
 	SelectBody selectBody;
@@ -1332,11 +1432,13 @@ int selectCmd(int isInner, Value *resultValue)
 	
 	return 0;
 }
-/* 处理一条命令cmd */
+/*
+ *功能：
+ *		处理一条命令cmd
+ */
 int processCmd(char *cmd)
 {	
 	int flag;
-	printf("%s\n", cmd);
 	for (p=cmd,flag=0;p!=NULL;)
 	{
 		scaner();
@@ -1389,7 +1491,10 @@ int processCmd(char *cmd)
 	return flag;
 }
 
-
+/*
+ *功能：
+ *		获得下一个词的种别码
+ */
 int nextSyn()
 {
 	char *temp = p;
@@ -1397,7 +1502,11 @@ int nextSyn()
 	p = temp;
 	return syn;
 }
-//expression
+/*
+ *功能：
+ *		语法分析中的expression
+ *     expression -> term {or term}
+ */
 int expression(Node *T)
 {
 	NodeValue value;
@@ -1416,7 +1525,11 @@ int expression(Node *T)
 	}
 	return 0;
 }
-//term
+/*
+ *功能：
+ *		语法分析中的term
+ *      term -> factor {and factor}
+ */
 int term(Node *T)
 {
 	NodeValue value;
@@ -1435,7 +1548,11 @@ int term(Node *T)
 	}
     return 0;
 }
-//factor
+/*
+ *功能：
+ *		语法分析中的factor
+ *     factor -> condition | (expression)
+ */
 int factor(Node *T)
 {
 	char *temp = p;
@@ -1462,7 +1579,10 @@ int factor(Node *T)
 	}
 	return 0;
 }
-//复杂and, or表达式，化为链，去除括号
+/*
+ *功能：
+ *		复杂and, or表达式，化为链，去除括号
+ */
 int setLogicWhere(char *str, Condition **conditon)
 {
 	Node T;
