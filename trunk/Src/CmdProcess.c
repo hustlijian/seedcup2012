@@ -1446,7 +1446,8 @@ int factor(Node *T)
 		T->child = T->brother = NULL;
 		T->nodeValue.nodeType = CONDITION;
 		p = temp;
-		setWhere(&(T->nodeValue.condition));
+		if (setWhere(&(T->nodeValue.condition)))
+			return -1;
 		break;
     case SYN_PAREN_LEFT://(
         expression(T);
