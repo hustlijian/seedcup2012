@@ -182,7 +182,7 @@ LOGIC getLogicType(char *str)
  *功能:
  *     扫描字符串p，保存一个词到word
  */
-void scaner()
+static void scaner()
 {
 	int i, j;
 	char ch, temp;
@@ -862,6 +862,8 @@ int getValue(Value *value)
 					num++;
 				if (p[i]==')')
 					num--;
+				if (p[i]==';' || p[i]=='\0')//end
+					return -1;
 				i++;
 			}while(num>0);
 			innerSelect[i]='\0';
@@ -1238,7 +1240,7 @@ int setWhere(Condition **condition)
 				num++;
 			if (p[i]==')')
 				num--;
-			if (p[i]==';')//end
+			if (p[i]==';' || p[i]=='\0')//end
 				return -1;
 			i++;
 		}while(num>0);
@@ -1439,6 +1441,7 @@ int selectCmd(int isInner, Value *resultValue)
 int processCmd(char *cmd)
 {	
 	int flag;
+	printf("%s\n", cmd);
 	for (p=cmd,flag=0;p!=NULL;)
 	{
 		scaner();
