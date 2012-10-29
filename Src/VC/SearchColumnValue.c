@@ -260,7 +260,7 @@ static int selectMatchedRow(ColumnValue **columnsValue, COLUMN_TYPE columnType, 
 static int match(ColumnValue *columnValue, COLUMN_TYPE columnType, Condition *condition)
 {
     COLUMN_TYPE conColumnType = condition->value.columnType;
-    if (conColumnType == EMPTY)
+    if (conColumnType == EMPTY || conColumnType == NONE)
         return -1;
     if (conColumnType != columnType && (conColumnType == TEXT || columnType == TEXT))
         return -1;
