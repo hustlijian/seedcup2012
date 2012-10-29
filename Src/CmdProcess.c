@@ -5,7 +5,6 @@
 #include "CmdProcess.h"
 #include "expression.h"
 #include "DatabaseAPI.h"
-#include "LogicExpStruct.h"
 #include "Tree.h"
 
 #define COL_NUM		20
@@ -1145,6 +1144,8 @@ int setWhere(Condition **condition)
 				num++;
 			if (p[i]==')')
 				num--;
+			if (p[i]==';')//end
+				return -1;
 			i++;
 		}while(num>0);
 		expStr[i]='\0';
