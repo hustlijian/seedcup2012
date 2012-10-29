@@ -1441,7 +1441,6 @@ int selectCmd(int isInner, Value *resultValue)
 int processCmd(char *cmd)
 {	
 	int flag;
-	printf("%s\n", cmd);
 	for (p=cmd,flag=0;p!=NULL;)
 	{
 		scaner();
