@@ -8,10 +8,10 @@
 SeqList *L[Max];
 int kTemp, jTemp = 0;
 
-void Insert(SeqList *L, char a, int i) 
+void Insert(SeqList *L, char a, int i)
 {
 	L->List[i] = a;
-	if(a == '.') 
+	if(a == '.')
 	{
 		jTemp = i;
 		L->List[jTemp] = 48;	//0
@@ -24,19 +24,19 @@ float Ret(SeqList *L)
 	int i = 0, a;
 	float t = 0;
 
-	if(jTemp == 0)  
-		while(i <= kTemp) 
+	if(jTemp == 0)
+		while(i <= kTemp)
 		{
-			t = t + (L->List[i] - '0') * (float)(pow(10, kTemp - i)); 
+			t = t + (L->List[i] - '0') * (float)(pow(10, kTemp - i));
 			i++;
 		}
-	else 
+	else
 	{
-		while(i <= kTemp) 
+		while(i <= kTemp)
 		{
-			if((a = jTemp - i - 1) >= 0) 
+			if((a = jTemp - i - 1) >= 0)
 				a = jTemp - i - 1;
-			else 
+			else
 				a = jTemp - i;
 			t = t + (L->List[i] - 48) * (float)(pow(10, a));
 			i++;
@@ -46,13 +46,13 @@ float Ret(SeqList *L)
 	return t;
 }
 
-void Makempty2(OSS *s) 
+void Makempty2(OSS *s)
 {
 	s->bot = 0;
 	s->top = -1;
 }
 
-void Makempty1(ORS *s) 
+void Makempty1(ORS *s)
 {
 	s->bot = 0;
 	s->top = -1;
@@ -60,18 +60,18 @@ void Makempty1(ORS *s)
 
 int Empty2(OSS *s)
 {
-	if(s->top == -1) 
-		return 0; 
-	else 
-		return -1; 
+	if(s->top == -1)
+		return 0;
+	else
+		return -1;
 }
 
 int Empty1(ORS *s)
 {
-	if(s->top == -1) 
-		return 0; 
-	else 
-		return -1; 
+	if(s->top == -1)
+		return 0;
+	else
+		return -1;
 }
 
 char Gettop2(OSS *s, char *ch)
@@ -80,7 +80,7 @@ char Gettop2(OSS *s, char *ch)
 	{
 		return -1;
 	}
-	else 
+	else
 	{
 		*ch = s->List1[s->top].a;
 		return 0;
@@ -89,50 +89,50 @@ char Gettop2(OSS *s, char *ch)
 
 int Gettop21(OSS *s, int *i)
 {
-	if(!Empty2(s))  
+	if(!Empty2(s))
 	{
 		return -1;
 	}
-	else 
+	else
 	{
 		*i = s->List1[s->top].b ;
 		return 0;
 	}
 }
 
-int Gettop1(ORS *s, float *flt) 
+int Gettop1(ORS *s, float *flt)
 {
-	if(!Empty1(s))  
+	if(!Empty1(s))
 	{
 		return -1;
 	}
-	else 
+	else
 	{
 		*flt = (s->List[s->top]);
 		return 0;
 	}
 }
 
-int Pop2(OSS *s) 
+int Pop2(OSS *s)
 {
-	if(!Empty2(s)) 
+	if(!Empty2(s))
 	{
 		return -1;
 	}
-	else 
+	else
 	{
 		s->top--;
 		return 0;
 	}
 }
 
-int Pop1(ORS *s) 
+int Pop1(ORS *s)
 {
-	if(!Empty1(s)) 
+	if(!Empty1(s))
 	{
 		return -1;
 	}
-	else 
+	else
 	{
 		s->top--;
 		return 0;
@@ -146,13 +146,13 @@ void Push2(OSS *s, char x, int y ) //操作符入栈
 	s->List1[s->top].b = y;
 }
 
-void Push1(ORS *s, float x) 
+void Push1(ORS *s, float x)
 {
 	s->top++;
 	s->List[s->top] = x;
 }
 
-int calExpression(char *A, float *result) 
+int calExpression(char *A, float *result)
 {
 	OSS *q;
 	ORS *p;
@@ -167,12 +167,12 @@ int calExpression(char *A, float *result)
 	Makempty1 ( p );
 	Makempty2 ( q );
 	Push2 (q, ';', 0);
-	while ( *s != '\0' ) 
+	while ( *s != '\0' )
 	{
-		if ( *s==';' || *s=='(' || *s==')' || *s=='-' || *s=='+' || 
-			*s=='/' || *s=='*' || *s=='%' || *s=='^' ) 
+		if ( *s==';' || *s=='(' || *s==')' || *s=='-' || *s=='+' ||
+			*s=='/' || *s=='*' || *s=='%' || *s=='^' )
 		{
-			switch ( *s ) 
+			switch ( *s )
 			{
 			case ';':
 				w = 0;
@@ -198,25 +198,25 @@ int calExpression(char *A, float *result)
 				return -1;
 			if (Gettop2(q, &chTemp))
 				return -1;
-			if ( *s == '(' || w > iTemp )  
-			{ 
+			if ( *s == '(' || w > iTemp )
+			{
 				Push2(q, *s, w);
-				*s++;
-			} 
-			else if (*s == ';' && chTemp == ';') 
+				s++;
+			}
+			else if (*s == ';' && chTemp == ';')
 			{
 				if (Gettop1(p, &fTemp))
 					return -1;
 				*result = fTemp;
-				*s++;
-			} 
-			else if (*s == ')' && chTemp == '(' )  
-			{ 
+				s++;
+			}
+			else if (*s == ')' && chTemp == '(' )
+			{
 				if(Pop2(q))
 					return -1;
-				*s++;
+				s++;
 			}
-			else if ( w <= iTemp && (isdigit(*(s-1)) || *(s-1) == '(' || *(s-1) == ')'))// 
+			else if ( w <= iTemp && (isdigit(*(s-1)) || *(s-1) == '(' || *(s-1) == ')'))//
 			{
 				if (Gettop1(p, &fTemp))
 					return -1;
@@ -239,7 +239,7 @@ int calExpression(char *A, float *result)
 				c = chTemp;
 				if(Pop2(q))
 					return -1;
-				switch(c) 
+				switch(c)
 				{
 				case '+' :
 					f = a + b;
@@ -274,10 +274,10 @@ int calExpression(char *A, float *result)
 			else
 			{
 				Push2(q, *s, w);
-				*s++;
+				s++;
 			}
-		} 
-		else 
+		}
+		else
 		{
 			h = 0;
 			L[i] = (SeqList *)malloc(sizeof(SeqList));
@@ -290,10 +290,10 @@ int calExpression(char *A, float *result)
 				Pop2(q);
 				negFlag = 1;
 			}
-			while(isdigit(*s) || *s == '.' )      
+			while(isdigit(*s) || *s == '.' )
 			{
 				Insert(L[i], *s, h++ );
-				*s++;
+				s++;
 			}
 			if (negFlag == 1)			//-8这类
 			{
@@ -301,7 +301,7 @@ int calExpression(char *A, float *result)
 				negFlag = 0;
 			}
 			else
-				Push1(p, Ret(L[i]));	
+				Push1(p, Ret(L[i]));
 			i++;
 		}
 	}
