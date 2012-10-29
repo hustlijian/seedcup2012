@@ -20,6 +20,7 @@
 #define OPER_AMOUNT 8
 
 #define LENGTH 25
+#define  SIZE 20
 
 static int getRowAmount(Table *table);
 static int handleAnd(Table *table, Condition *condition, int *andRowNumber, int andRowAmount);
@@ -69,6 +70,17 @@ int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmo
     int rowAmount = getRowAmount(table);
     int i, j;
     int index = 0;
+	Condition *conditionTra;
+	Condition *prior;
+	int andCount = 0;
+    int orCount = 0;
+	int resultRowNumber[ROW_MAX];
+    int resultRowAmount;
+	int (*compareIntP)(const void *, const void *);
+	ColumnValue *columnValueTra;
+    ColumnValue *columnsValueTra[SIZE];
+	int curColumnValuePos = 0;
+
     if (condition == NULL)
     {
         for (i = 0; i < selColumnAmount; i++)
@@ -98,11 +110,9 @@ int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmo
             andRowNumber[i][j] = j;
     }
 
-    Condition *conditionTra = condition;
-    Condition *prior = condition;
+    conditionTra = condition;
+    prior = condition;
 
-    int andCount = 0;
-    int orCount = 0;
     while (conditionTra != NULL)
     {
 
@@ -135,17 +145,14 @@ int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmo
         conditionTra = conditionTra->next;
     }
 
-    int resultRowNumber[ROW_MAX];
-    int resultRowAmount;
+    
     resultRowAmount = mergeAndOr(andRowNumber, andRowAmount, andCount, orRowNumber, orRowAmount,
                                  orCount, resultRowNumber);
 
-    int (*compareIntP)(const void *, const void *) = compareInt;
+    compareIntP= compareInt;
     qsort(resultRowNumber, resultRowAmount, sizeof(int), compareIntP);
 
-    ColumnValue *columnValueTra;
-    ColumnValue *columnsValueTra[selColumnAmount];
-    int curColumnValuePos = 0;
+    
     for (i = 0; i < selColumnAmount; i++)
         columnsValueTra[i] = selectedColumn[i]->columnValueHead;
 
@@ -177,14 +184,19 @@ int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmo
 }
 static int handleAnd(Table *table, Condition *condition, int *andRowNumber, int andRowAmount)
 {
+	int i;
+	ColumnValue *columnsValue[ROW_MAX];
+	ColumnValue *columnValueTra;
+	int columnsValuePos = 0;
+	int newAndRowAmount;
     Column *column = searchColumn(table, condition->columnName, NULL);
     if (column == NULL)
         return -1;
 
-    int i;
-    ColumnValue *columnsValue[andRowAmount];
-    ColumnValue *columnValueTra = column->columnValueHead;
-    int columnsValuePos = 0;
+    
+    
+    columnValueTra = column->columnValueHead;
+    
 
     for (i = 0; i < andRowAmount; i++)
     {
@@ -198,20 +210,23 @@ static int handleAnd(Table *table, Condition *condition, int *andRowNumber, int 
         //printf("%d, %d\t", columnsValuePos, columnValueTra->hasData);
     }
 
-    int newAndRowAmount = selectMatchedRow(columnsValue, column->columnType, andRowNumber, andRowAmount, condition);
+    newAndRowAmount = selectMatchedRow(columnsValue, column->columnType, andRowNumber, andRowAmount, condition);
     return newAndRowAmount;
 }
 static int getRowAmount(Table *table)
 {
+	Column *column ;
+	ColumnValue *columnValueTra;
+	int count = 0;
     if (table == NULL)
         return 0;
-    Column *column = table->columnHead;
+    column = table->columnHead;
     if (column == NULL)
         return 0;
-    ColumnValue *columnValueTra = column->columnValueHead;
+    columnValueTra = column->columnValueHead;
     if (columnValueTra == NULL)
         return 0;
-    int count = 0;
+    
     while (columnValueTra != NULL)
     {
         count++;
@@ -221,14 +236,17 @@ static int getRowAmount(Table *table)
 }
 static int handleOr(Table *table, Condition *condition, int *orRowNumber)
 {
+	int count = 0;
+	ColumnValue *columnValueTra;
+	int isMatch;
+    int i = 0;
     Column *column = searchColumn(table, condition->columnName, NULL);
     if (column == NULL)
         return -1;
 
-    int count = 0;
-    ColumnValue *columnValueTra = column->columnValueHead;
-    int isMatch;
-    int i = 0;
+    
+    columnValueTra = column->columnValueHead;
+    
     while (columnValueTra != NULL)
     {
         isMatch = match(columnValueTra, column->columnType, condition);
@@ -259,6 +277,9 @@ static int selectMatchedRow(ColumnValue **columnsValue, COLUMN_TYPE columnType, 
 }
 static int match(ColumnValue *columnValue, COLUMN_TYPE columnType, Condition *condition)
 {
+	int operNumber;
+	Value value[2] ;
+	int result;
     COLUMN_TYPE conColumnType = condition->value.columnType;
     if (conColumnType == EMPTY || conColumnType == NONE)
         return -1;
@@ -267,10 +288,11 @@ static int match(ColumnValue *columnValue, COLUMN_TYPE columnType, Condition *co
     if (columnValue->hasData == 0)
         return 0;
 
-    int operNumber = condition->operator;
-    Value value[2] = {condition->value, condition->value2};
+    operNumber = condition->operator;
+    value[0] = condition->value;
+	value[1] = condition->value2;
 
-    int result = operations[operNumber](columnValue->data, columnType, value);
+    result = operations[operNumber](columnValue->data, columnType, value);
     return result;
 }
 static int eqOperation(Data data, COLUMN_TYPE columnType, Value *value)
