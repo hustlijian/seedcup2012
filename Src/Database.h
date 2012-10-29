@@ -1,9 +1,19 @@
+ /**
+ * @file    MaintainData.c
+ * @author  hzhigeng <hzhigeng@gmail.com>
+ * @version 1.0
+ *
+ * @section DESCRIPTION
+ *
+ * 数据库底层物理结构，Database结构体为第一级结构，Table结构体为第二级，Column为第三级，ColumnValue为第四级，
+ * 而数据则存储在Data共同体中
+ */
+
 #ifndef DATABASE_H_INCLUDED
 #define DATABASE_H_INCLUDED
 
 #include "DatabaseAPI.h"
 
-#define LENGTH 25
 
 typedef union {
         int intValue;
@@ -11,32 +21,46 @@ typedef union {
         char *textValue;
 } Data;
 typedef struct columnValue {
-    Data data;
-    int hasData;
-    struct columnValue *next;
+    Data data;                          //数据存储处
+    int hasData;                        //标识该结点是否含有数据
+    struct columnValue *next;           //ColumnValue链表的next指针
 } ColumnValue;
 typedef struct column {
-    char columnName[LENGTH];
-    COLUMN_TYPE columnType;
-    struct column *next;
-    ColumnValue *columnValueHead;
+    char columnName[NAME_MAX];          //列名
+    COLUMN_TYPE columnType;             //列的数据类型
+    struct column *next;                //Column链表的next指针
+    ColumnValue *columnValueHead;       //ColumnValue链表的头指针
 } Column;
 typedef struct table {
-    char tableName[LENGTH];
-    struct table *next;
-    Column *columnHead;
+    char tableName[NAME_MAX];           //表名
+    struct table *next;                 //Table链表的next指针
+    Column *columnHead;                 //Column链表的头指针
 } Table;
 typedef struct database {
-    char databaseName[LENGTH];
-    struct database *next;
-    Table *tableHead;
+    char databaseName[NAME_MAX];        //数据库名
+    struct database *next;              //Database链表的next指针
+    Table *tableHead;                   //Table链表的头指针
 } Database;
 
-//本来下面3个函数应该拥有相同的形式，但由于整体上没有考虑清楚，导致
-//对函数功能定义不明确，所以就这样了……暂时不改了
+/**
+* 根据参数tableName搜索对应的Table并返回其指针，没有找到返回NULL
+*/
 Table *searchTable(char *tableName);
+
+/**
+* 根据columnName搜索table底下对应的Column并返回其指针，无法找到则返回NULL，另外，prior参数存储
+* 着该Column的前一个Column指针，如不需要可将其设为NULL，
+*/
 Column *searchColumn(Table *table, char *columnName, Column **prior);
+
+/**
+* 根据参数databaseName搜索对应的Database并返回其指针，没有找到返回NULL
+*/
 Database *searchDatabase(char *databaseName, Database **prior);
+
+/**
+* 查找table底下所有的Column并将其存储在最大容量为size的allColumn里，函数返回Column的数目
+*/
 int getAllColumn(Table *table, Column **allColumn, int size);
 
 #endif // DATABASE_H_INCLUDED

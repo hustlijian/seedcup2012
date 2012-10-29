@@ -1,3 +1,14 @@
+ /**
+ * @file    DefineDatabase.c
+ * @author  hzhigeng <hzhigeng@gmail.com>
+ * @version 1.0
+ *
+ * @section DESCRIPTION
+ *
+ * 数据库定义部分，用于完成"CREATE DATABASE"、"CREATE TABLE"、"ALTER TABLE"、"TRUNCATE TABLE"、"USE"、
+ * "DROP TABLE/DATABASE"、"RENAME TABLE/DATABASE"等相关功能
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -11,7 +22,6 @@ static void alterToFloat(Data *data, COLUMN_TYPE oldColumnType);
 static void alterToText(Data *data, COLUMN_TYPE oldColumnType);
 static void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
                             COLUMN_TYPE), COLUMN_TYPE oldColumnType);
-//static void clearTable(Table *table);
 static void freeAllColumn(Column *column, int isFreeColumn);
 
 static int dropDatabase(char *databaseName);
@@ -20,14 +30,20 @@ static void dropAllTable(Table *tableTraverse);
 static void freeTable(Table *table, int isFreeTable);
 
 
-Database *head = NULL;
-Database *currentDatabase = NULL;
+Database *head = NULL;                  //Database链表的头指针
+Database *currentDatabase = NULL;       //当前使用的Database的指针
 
+/**
+ * <创建数据库>
+ *
+ * @param   databaseName 新数据库的名字
+ * @return  0代表创建成功，-1代表创建失败
+ */
 int createDatabase(char *databaseName)
 {
     Database *traverse = head;
     Database *newDatabase = calloc(1, sizeof(Database));
-    strncpy(newDatabase->databaseName, databaseName, LENGTH-1);
+    strncpy(newDatabase->databaseName, databaseName, NAME_MAX-1);
     newDatabase->next = NULL;
     newDatabase->tableHead = NULL;
 
@@ -53,6 +69,15 @@ int createDatabase(char *databaseName)
     }
     return 0;
 }
+/**
+ * <创建表>
+ *
+ * @param   tableName    新表的名字
+ * @param   columnsName  新表所有列的名字
+ * @param   columnsType  新表所有列的类型
+ * @param   columnAmount 新表所有列的数目
+ * @return  0代表创建成功，-1代表创建失败
+ */
 int createTable(char *tableName, char **columnsName,
                 COLUMN_TYPE *columnsType, int columnAmount)
 {
@@ -61,7 +86,7 @@ int createTable(char *tableName, char **columnsName,
 
     Table *traverse = currentDatabase->tableHead;
     Table *newTable = (Table *)calloc(1, sizeof(Table));
-    strncpy(newTable->tableName, tableName, LENGTH-1);
+    strncpy(newTable->tableName, tableName, NAME_MAX-1);
     newTable->next = NULL;
     newTable->columnHead = NULL;
     if (traverse == NULL)
@@ -96,7 +121,7 @@ int createTable(char *tableName, char **columnsName,
             free(newColumn);
             return -1;
         }
-        strncpy(newColumn->columnName, columnsName[i], LENGTH-1);
+        strncpy(newColumn->columnName, columnsName[i], NAME_MAX-1);
         newColumn->columnType = columnsType[i];
         if (i == 0)
             newTable->columnHead = newColumn;
@@ -106,6 +131,14 @@ int createTable(char *tableName, char **columnsName,
     }
     return 0;
 }
+/**
+ * <添加列>
+ *
+ * @param   tableName    操作的表的名字
+ * @param   columnName   新加列的名字
+ * @param   columnType   新加列的类型
+ * @return  0代表添加成功，-1代表添加失败
+ */
 int addColumn(char *tableName, char *columnName,
               COLUMN_TYPE columnType)
 {
@@ -116,7 +149,7 @@ int addColumn(char *tableName, char *columnName,
     if (tableTraverse == NULL)   //找到结尾处仍未找到
         return -1;
     Column *newColumn = (Column *)calloc(1, sizeof(Column));
-    strncpy(newColumn->columnName, columnName, LENGTH-1);
+    strncpy(newColumn->columnName, columnName, NAME_MAX-1);
     newColumn->columnType = columnType;
     newColumn->next = NULL;
     newColumn->columnValueHead = NULL;
@@ -151,7 +184,7 @@ int addColumn(char *tableName, char *columnName,
     {
         newColumnValue = (ColumnValue *)calloc(1, sizeof(ColumnValue));
         if (columnType == TEXT)
-            newColumnValue->data.textValue = (char *)calloc(LENGTH, sizeof(char));
+            newColumnValue->data.textValue = (char *)calloc(NAME_MAX, sizeof(char));
 
         if (newColumn->columnValueHead == NULL)
             newColumn->columnValueHead = newColumnValue;
@@ -164,7 +197,13 @@ int addColumn(char *tableName, char *columnName,
         newColumnValue->next = NULL;
     return 0;
 }
-
+/**
+ * <删除列>
+ *
+ * @param   tableName    操作的表的名字
+ * @param   columnName   删除列的名字
+ * @return  0代表删除成功，-1代表删除失败
+ */
 int rmColumn(char *tableName, char *columnName)
 {
     if (currentDatabase == NULL)
@@ -173,7 +212,6 @@ int rmColumn(char *tableName, char *columnName)
     Column *prior;
     Table *table = searchTable(tableName);
     Column *column = searchColumn(table, columnName, &prior);
-    //Column *column = searchColumn(tableName, columnName, &prior);
     if (column == NULL)
         return -1;
 
@@ -185,6 +223,14 @@ int rmColumn(char *tableName, char *columnName)
     free(column);
     return 0;
 }
+/**
+ * <修改列>
+ *
+ * @param   tableName    操作的表的名字
+ * @param   columnName   需修改的列的名字
+ * @param   columnType   修改后的类型
+ * @return  0代表修改成功，-1代表修改失败
+ */
 int alterColumn(char *tableName, char *columnName,
                 COLUMN_TYPE newColumnType)
 {
@@ -219,6 +265,12 @@ int alterColumn(char *tableName, char *columnName,
     column->columnType = newColumnType;
     return 0;
 }
+/**
+ * <删除表内所有数据>
+ *
+ * @param   tableName    操作的表的名字
+ * @return  0代表删除成功，-1代表删除失败
+ */
 int truncateTable(char *tableName)
 {
     Table *table = searchTable(tableName);
@@ -229,6 +281,12 @@ int truncateTable(char *tableName)
     freeTable(table, 0);
     return 0;
 }
+/**
+ * <使用某数据库为当前数据库>
+ *
+ * @param   databaseName    操作的数据库的名字
+ * @return  0代表使用成功，-1代表使用失败
+ */
 int use(char *databaseName)
 {
     Database *database = searchDatabase(databaseName, NULL);
@@ -237,6 +295,13 @@ int use(char *databaseName)
     currentDatabase = database;
     return 0;
 }
+/**
+ * <删除表或数据库>
+ *
+ * @param   databaseName    操作的数据库的名字
+ * @param   tableName       操作的表的名字，欲删除数据库时此项为NULL
+ * @return  0代表操作成功，-1代表操作失败
+ */
 int drop(char *databaseName, char *tableName)
 {
     //tableName为NULL时删除整个database
@@ -247,6 +312,13 @@ int drop(char *databaseName, char *tableName)
         result = dropOneTable(databaseName, tableName); //TODO
     return result;
 }
+/**
+ * <重命名数据库>
+ *
+ * @param   oldName    操作的数据库的名字
+ * @param   newName    操作的数据库的新名
+ * @return  0代表操作成功，-1代表操作失败
+ */
 int renameDatabase(char *oldName, char *newName)
 {
     Database *database = searchDatabase(oldName, NULL);
@@ -254,9 +326,16 @@ int renameDatabase(char *oldName, char *newName)
         return -1;
     if (searchDatabase(newName, NULL) != NULL)
         return -1;      //与现有数据库重名
-    strncpy(database->databaseName, newName, LENGTH-1);
+    strncpy(database->databaseName, newName, NAME_MAX-1);
     return 0;
 }
+/**
+ * <重命名表>
+ *
+ * @param   oldName    操作的表的名字
+ * @param   newName    操作的表的新名
+ * @return  0代表操作成功，-1代表操作失败
+ */
 int renameTable(char *oldName, char *newName)
 {
     Table *table = searchTable(oldName);
@@ -264,7 +343,7 @@ int renameTable(char *oldName, char *newName)
         return -1;
     if (searchTable(newName) != NULL)
         return -1;  //与现有表重名
-    strncpy(table->tableName, newName, LENGTH-1);
+    strncpy(table->tableName, newName, NAME_MAX-1);
     return 0;
 }
 
@@ -294,27 +373,6 @@ Column *searchColumn(Table *table, char *columnName, Column **prior)
         *prior = priorTra;
     return columnTraverse;
 }
-/*static void clearTable(Table *table)
-{
-    if (table == NULL)
-        return ;
-    Column *columnTra = table->columnHead;
-    ColumnValue *columnValueTra;
-
-    while (columnTra != NULL)
-    {
-        columnValueTra = columnTra->columnValueHead;
-        while (columnValueTra != NULL)
-        {
-            if (columnTra->columnType == TEXT)
-                strncpy(columnValueTra->data.textValue, "", LENGTH);
-            else
-                memset(&columnValueTra->data, 0, sizeof(Data));
-            columnValueTra = columnValueTra->next;
-        }
-        columnTra = columnTra->next;
-    }
-}*/
 
 static void freeAllColumnValue(ColumnValue *columnValue, int isTextType)
 {
@@ -351,11 +409,11 @@ static void alterToFloat(Data *data, COLUMN_TYPE oldColumnType)
 }
 static void alterToText(Data *data, COLUMN_TYPE oldColumnType)
 {
-    data->textValue = (char *)calloc(LENGTH, sizeof(char));
+    data->textValue = (char *)calloc(NAME_MAX, sizeof(char));
     if (oldColumnType == INT)
         itoa(data->intValue, data->textValue, 10);
     else if (oldColumnType == FLOAT)
-        gcvt(data->floatValue, LENGTH-1, data->textValue);
+        gcvt(data->floatValue, NAME_MAX-1, data->textValue);
 }
 static void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
                             COLUMN_TYPE), COLUMN_TYPE oldColumnType)

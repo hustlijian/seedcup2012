@@ -1,3 +1,14 @@
+ /**
+ * @file    MaintainData.c
+ * @author  hzhigeng <hzhigeng@gmail.com>
+ * @version 1.0
+ *
+ * @section DESCRIPTION
+ *
+ * 数据操作部分，用于完成SELECT、UPDATE、DELETE、INSERT INTO等相关功能。
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,7 +16,6 @@
 #include "DatabaseAPI.h"
 
 #define ROW_MAX 20
-#define LENGTH 25
 
 extern int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmount,
                    ColumnValue **resultColumnValue, Condition *condition, int isInner);
@@ -48,6 +58,12 @@ static int searchPos(int *insertedColumnPos, int key, int size);
 extern Database *head;
 extern Database *currentDatabase;
 
+/**
+ * <select功能>
+ *
+ * @param   selectBody    select操作所需的参数
+ * @return  0代表操作成功，-1代表操作失败
+ */
 int select(SelectBody *selectBody)
 {
     if (selectBody == NULL)
@@ -59,6 +75,12 @@ int select(SelectBody *selectBody)
         result = handleOuterSelect(selectBody);
     return result;
 }
+/**
+ * <update功能>
+ *
+ * @param   updateBody    update操作所需的参数
+ * @return  0代表操作成功，-1代表操作失败
+ */
 int update(UpdateBody *updateBody)
 {
     Table *table = searchTable(updateBody->tableName);
@@ -102,6 +124,14 @@ int update(UpdateBody *updateBody)
         return -1;
     return result;
 }
+/**
+ * <delete功能>
+ *
+ * @param   tableName    操作的表的名字
+ * @param   columnName   where条件的列名
+ * @param   value        where条件的数据
+ * @return  0代表操作成功，-1代表操作失败
+ */
 int delete(char *tableName, char *columnName, Value value)
 {
     Table *table = searchTable(tableName);
@@ -147,6 +177,15 @@ int delete(char *tableName, char *columnName, Value value)
         return -1;
     return 0;
 }
+/**
+ * <insert功能>
+ *
+ * @param   tableName     操作的表的名字
+ * @param   columnsName   插入列的名字
+ * @param   values        插入的新数据
+ * @param   amount        插入列的数目
+ * @return  0代表操作成功，-1代表操作失败
+ */
 int insert(char *tableName, char **columnsName, Value *values, int amount)
 {
     Table *table = searchTable(tableName);
@@ -226,8 +265,8 @@ static void assignValue(Value *value, Data data, COLUMN_TYPE columnType)
         value->columnValue.floatValue = data.floatValue;
         break;
     case TEXT:
-        value->columnValue.textValue = calloc(LENGTH, sizeof(char));
-        strncpy(value->columnValue.textValue, data.textValue, LENGTH-1);
+        value->columnValue.textValue = calloc(NAME_MAX, sizeof(char));
+        strncpy(value->columnValue.textValue, data.textValue, NAME_MAX-1);
         break;
     default:
         break;
@@ -305,7 +344,7 @@ static void outputResult(ColumnValue **columnsValue, COLUMN_TYPE *columnType, in
     {
         for (j = 0; j < columnAmount; j++)
         {
-            stringArray[i*columnAmount+j] = calloc(LENGTH, sizeof(char));
+            stringArray[i*columnAmount+j] = calloc(NAME_MAX, sizeof(char));
             assignString(stringArray[i*columnAmount+j], columnsValue[i*columnAmount+j], columnType[j]);
         }
     }
@@ -342,7 +381,7 @@ static void assignString(char *string, ColumnValue *columnValue, COLUMN_TYPE col
             sprintf(string, "%.2f", columnValue->data.floatValue);
             break;
         case TEXT:
-            strncpy(string, columnValue->data.textValue, LENGTH-1);
+            strncpy(string, columnValue->data.textValue, NAME_MAX-1);
             break;
         case NONE:
             strcpy(string, "#");
@@ -369,6 +408,7 @@ static void sortStringArray(char **stringArray, int rowAmount, int columnAmount,
 
     getFinalOrder(stringArray+sortByWhich, rowAmount, columnAmount, sortOrder, finalOrder);
 
+
     char *stringTemp[rowAmount*columnAmount];
     int finalRow;
     for (i = 0; i < rowAmount*columnAmount; i++)
@@ -379,7 +419,6 @@ static void sortStringArray(char **stringArray, int rowAmount, int columnAmount,
         {
             finalRow = finalOrder[i];
             stringArray[i*columnAmount+j] = stringTemp[finalRow*columnAmount+j];
-            //printf("\n%s", stringArray[i*columnAmount+j]);
         }
     }
 }
@@ -403,8 +442,6 @@ static void getFinalOrder(char **string, int rowAmount, int columnAmount, SORT_O
     {
         for (j = 0; j < rowAmount - 1; j++)
         {
-//            for (k = 0; k < rowAmount; k++)
-//                printf("\n%d\t%s", finalOrder[k], sortedStrings[k]);
             if (compare(sortedStrings[j], sortedStrings[j+1]) > 0)
             {
                 swapTemp = finalOrder[j];
@@ -522,8 +559,8 @@ static void assignData(ColumnValue *columnValue, Value newValue)
         break;
     case TEXT:
         if (columnValue->data.textValue == NULL)
-            columnValue->data.textValue = calloc(LENGTH, sizeof(char));
-        strncpy(columnValue->data.textValue, newValue.columnValue.textValue, LENGTH);
+            columnValue->data.textValue = calloc(NAME_MAX, sizeof(char));
+        strncpy(columnValue->data.textValue, newValue.columnValue.textValue, NAME_MAX);
         columnValue->hasData = 1;
         break;
     default:
