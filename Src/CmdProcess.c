@@ -182,7 +182,7 @@ LOGIC getLogicType(char *str)
  *功能:
  *     扫描字符串p，保存一个词到word
  */
-static void scaner()
+ void scaner()
 {
 	int i, j;
 	char ch, temp;
