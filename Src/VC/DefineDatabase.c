@@ -81,11 +81,16 @@ int createDatabase(char *databaseName)
 int createTable(char *tableName, char **columnsName,
                 COLUMN_TYPE *columnsType, int columnAmount)
 {
+	int i;
+    Column *newColumn;
+    Column *prior;
+	Table *traverse;
+	Table *newTable;
     if (currentDatabase == NULL)
         return -1;
 
-    Table *traverse = currentDatabase->tableHead;
-    Table *newTable = (Table *)calloc(1, sizeof(Table));
+    traverse = currentDatabase->tableHead;
+    newTable = (Table *)calloc(1, sizeof(Table));
     strncpy(newTable->tableName, tableName, NAME_MAX-1);
     newTable->next = NULL;
     newTable->columnHead = NULL;
@@ -110,9 +115,6 @@ int createTable(char *tableName, char **columnsName,
         traverse->next = newTable;
     }
 
-    int i;
-    Column *newColumn;
-    Column *prior;
     for (i = 0; i < columnAmount; i++)
     {
         newColumn = (Column *)calloc(1, sizeof(Column));
@@ -142,19 +144,26 @@ int createTable(char *tableName, char **columnsName,
 int addColumn(char *tableName, char *columnName,
               COLUMN_TYPE columnType)
 {
+	Table *tableTraverse;
+	Column *newColumn;
+	Column *columnTraverse;
+	ColumnValue *columnValueTra;
+	ColumnValue *newColumnValue = NULL;
+	ColumnValue *prior;
+
     if (currentDatabase == NULL)
         return -1;
 
-    Table *tableTraverse = searchTable(tableName);
+    tableTraverse = searchTable(tableName);
     if (tableTraverse == NULL)   //找到结尾处仍未找到
         return -1;
-    Column *newColumn = (Column *)calloc(1, sizeof(Column));
+    newColumn = (Column *)calloc(1, sizeof(Column));
     strncpy(newColumn->columnName, columnName, NAME_MAX-1);
     newColumn->columnType = columnType;
     newColumn->next = NULL;
     newColumn->columnValueHead = NULL;
 
-    Column *columnTraverse = tableTraverse->columnHead;
+    columnTraverse = tableTraverse->columnHead;
     if (columnTraverse == NULL)
         tableTraverse->columnHead = newColumn;
     else
@@ -176,9 +185,7 @@ int addColumn(char *tableName, char *columnName,
         columnTraverse->next = newColumn;
     }
 
-    ColumnValue *columnValueTra = columnTraverse->columnValueHead;
-    ColumnValue *newColumnValue = NULL;
-    ColumnValue *prior;
+    columnValueTra = columnTraverse->columnValueHead;
 
     while (columnValueTra != NULL)
     {
@@ -206,12 +213,15 @@ int addColumn(char *tableName, char *columnName,
  */
 int rmColumn(char *tableName, char *columnName)
 {
+	Column *prior;
+	Table *table;
+	Column *column ;
+
     if (currentDatabase == NULL)
         return -1;
 
-    Column *prior;
-    Table *table = searchTable(tableName);
-    Column *column = searchColumn(table, columnName, &prior);
+    table = searchTable(tableName);
+    column = searchColumn(table, columnName, &prior);
     if (column == NULL)
         return -1;
 
@@ -234,19 +244,21 @@ int rmColumn(char *tableName, char *columnName)
 int alterColumn(char *tableName, char *columnName,
                 COLUMN_TYPE newColumnType)
 {
+	COLUMN_TYPE oldColumnType;
+	//由于此函数需要改变当前列下所有的数据，而不同的数据类型转换又拥有对应
+    //的不同的处理函数，故这里通过switch语句对alterData函数指针进行正确的赋
+    //值然后将其传递给alterColumnValue使用
+    void (*alterData)(Data *, COLUMN_TYPE);
+
     Table *table = searchTable(tableName);
     Column *column = searchColumn(table, columnName, NULL);
     if (column == NULL)
         return -1;
 
-    COLUMN_TYPE oldColumnType = column->columnType;
+    oldColumnType = column->columnType;
     if (!canAlterColumnType(oldColumnType, newColumnType))
         return -1;
 
-    //由于此函数需要改变当前列下所有的数据，而不同的数据类型转换又拥有对应
-    //的不同的处理函数，故这里通过switch语句对alterData函数指针进行正确的赋
-    //值然后将其传递给alterColumnValue使用
-    void (*alterData)(Data *, COLUMN_TYPE);
     switch (newColumnType)
     {
     case INT:
@@ -349,9 +361,11 @@ int renameTable(char *oldName, char *newName)
 
 Table *searchTable(char *tableName)
 {
+	Table *traverse;
+
     if (currentDatabase == NULL)
         return NULL;
-    Table *traverse = currentDatabase->tableHead;
+    traverse = currentDatabase->tableHead;
     while (traverse != NULL && mystrcmp(traverse->tableName,
                                       tableName))
         traverse = traverse->next;
@@ -359,11 +373,15 @@ Table *searchTable(char *tableName)
 }
 Column *searchColumn(Table *table, char *columnName, Column **prior)
 {
+	Column *columnTraverse;
+	Column *priorTra;
+
     if (table == NULL)
         return NULL;
 
-    Column *columnTraverse = table->columnHead;
-    Column *priorTra = table->columnHead;
+    columnTraverse = table->columnHead;
+    priorTra = table->columnHead;
+
     while (columnTraverse != NULL && mystrcmp(columnTraverse->columnName, columnName))
     {
         priorTra = columnTraverse;
@@ -418,10 +436,13 @@ static void alterToText(Data *data, COLUMN_TYPE oldColumnType)
 static void alterColumnValue(ColumnValue *columnValue, void (*alterData)(Data *,
                             COLUMN_TYPE), COLUMN_TYPE oldColumnType)
 {
+	ColumnValue *columnValueTraverse;
+	Data *dataTraverse;
+
     if (columnValue == NULL)
         return ;
-    ColumnValue *columnValueTraverse = columnValue;
-    Data *dataTraverse;
+    columnValueTraverse = columnValue;
+    
 
     while (columnValueTraverse != NULL)
     {
@@ -450,6 +471,7 @@ static void freeAllColumn(Column *column, int isFreeColumn)
  static int dropDatabase(char *databaseName)
  {
     Database *prior;
+	Table *tableTra;
     Database *database = searchDatabase(databaseName, &prior);
     if (database == NULL)
         return -1;
@@ -460,18 +482,20 @@ static void freeAllColumn(Column *column, int isFreeColumn)
     else
         prior->next = database->next;
 
-    Table *tableTra = database->tableHead;
+    tableTra = database->tableHead;
     dropAllTable(tableTra);
     return 0;
  }
 static int dropOneTable(char *databaseName, char *tableName)
 {
+	Table *tableTraverse;
+	Table *prior;
     Database *database = searchDatabase(databaseName, NULL);
     if (database == NULL)
         return -1;
 
-    Table *tableTraverse = database->tableHead;
-    Table *prior =tableTraverse;
+    tableTraverse = database->tableHead;
+    prior =tableTraverse;
 
     while (tableTraverse != NULL)
     {
@@ -492,10 +516,13 @@ static int dropOneTable(char *databaseName, char *tableName)
 }
 Database *searchDatabase(char *databaseName, Database **prior)
 {
+	Database *databaseTra;
+	Database *priorTra;
+
     if (databaseName == NULL)
         return NULL;
-    Database *databaseTra = head;
-    Database *priorTra = head;
+    databaseTra = head;
+    priorTra = head;
     while (databaseTra != NULL)
     {
         if (!mystrcmp(databaseTra->databaseName, databaseName))
@@ -518,9 +545,10 @@ static void dropAllTable(Table *tableTraverse)
 }
 static void freeTable(Table *table, int isFreeTable)
 {
+	Column *columnTra;
     if (table == NULL)
         return ;
-    Column *columnTra = table->columnHead;
+    columnTra = table->columnHead;
     freeAllColumn(columnTra, isFreeTable);
     if (isFreeTable)
         free(table);

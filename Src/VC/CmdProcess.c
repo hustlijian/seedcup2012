@@ -41,7 +41,7 @@ int syn;  //保存当前的类型
  * 参数：
  * 
 */
-int strcasecmp(const char *str1, const char *str2)
+int mystrcmp(const char *str1, const char *str2)
 {
 	int i=0;
 	char c1, c2;
@@ -82,7 +82,7 @@ int getTypeNum(char *str)
 	if (isalpha(str[0])||str[0]=='_') //标识符
 	{
 		for (i=0;i<NUM_KEYWORDS;i++)
-			if (!strcasecmp(keywords[i], str))
+			if (!mystrcmp(keywords[i], str))
 				break;
 		if (i==NUM_KEYWORDS) return SYN_IDENTIFIER;//一般标识符
 		else return (i+1);
@@ -254,7 +254,7 @@ int isKeywords(char *str)
 {
 	int i;
 	for (i=0;i<NUM_KEYWORDS;i++)
-		if (!strcasecmp(str, keywords[i]))
+		if (!mystrcmp(str, keywords[i]))
 			return 1;
 	return 0;  //不是关键字
 }

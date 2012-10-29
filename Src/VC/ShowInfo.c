@@ -14,6 +14,7 @@
 #include "Database.h"
 
 #define OUTPUT_MAX  20
+#define SIZE   20
 
 static int descOrderCompare(const void *elem1, const void *elem2);
 static int incrOrderCompare(const void *elem1, const void *elem2);
@@ -35,10 +36,10 @@ extern Database *currentDatabase;
  */
 int showDatabase(SORT_ORDER sortOrder)
 {
+	Database *databaseTra = head;
+    int count = 0;
     char *databasesName[OUTPUT_MAX];
     memset(databasesName, 0, OUTPUT_MAX*sizeof(char *));
-    Database *databaseTra = head;
-    int count = 0;
 
     if (databaseTra == NULL)
     {
@@ -67,6 +68,9 @@ int showDatabase(SORT_ORDER sortOrder)
 int showTable(char *databaseName, SORT_ORDER sortOrder)
 {
     Database *database;
+	char *tablesName[OUTPUT_MAX];
+	Table *tableTra;
+	int count = 0;
 
     if (databaseName == NULL)
         database = currentDatabase;
@@ -75,15 +79,13 @@ int showTable(char *databaseName, SORT_ORDER sortOrder)
     if (database == NULL)
         return -1;
 
-    char *tablesName[OUTPUT_MAX];
     memset(tablesName, 0, OUTPUT_MAX*sizeof(char *));
-    Table *tableTra = database->tableHead;
+    tableTra = database->tableHead;
     if (tableTra == NULL)
     {
         printf("$\n");
         return 0;
     }
-    int count = 0;
 
     while (tableTra != NULL)
     {
@@ -105,19 +107,20 @@ int showTable(char *databaseName, SORT_ORDER sortOrder)
  */
 int showColumn(char *tableName, SORT_ORDER sortOrder)
 {
+	char *columnsName[OUTPUT_MAX];
+	Column *columnTra;
+	 int count = 0;
     Table *table = searchTable(tableName);
     if (table == NULL)
         return -1;
 
-    char *columnsName[OUTPUT_MAX];
     memset(columnsName, 0, OUTPUT_MAX*sizeof(char *));
-    Column *columnTra = table->columnHead;
+    columnTra = table->columnHead;
     if (columnTra == NULL)
     {
         printf("$\n");
         return 0;
     }
-    int count = 0;
 
     while (columnTra != NULL)
     {
@@ -133,11 +136,12 @@ int showColumn(char *tableName, SORT_ORDER sortOrder)
 }
 static int showColumnType(char *tableName)
 {
+	Column *columnTra;
     Table *table = searchTable(tableName);
     if (table == NULL)
         return -1;
 
-    Column *columnTra = table->columnHead;
+    columnTra = table->columnHead;
     if (columnTra == NULL)
     {
         printf("$\n");
@@ -161,16 +165,17 @@ static int showColumnType(char *tableName)
  */
 int showAllColumnValue(char *tableName)
 {
+	Column *allColumn[OUTPUT_MAX];
+	int length;
+	ColumnValue *columnValueTra[SIZE];
+    int i;
     Table *table = searchTable(tableName);
     if (table == NULL)
         return -1;
 
-    Column *allColumn[OUTPUT_MAX];
-    int length = getAllColumn(table, allColumn, OUTPUT_MAX);
+    length = getAllColumn(table, allColumn, OUTPUT_MAX);
     if (length <= 0)
         return -1;
-    ColumnValue *columnValueTra[length];
-    int i;
 
     printf("Begin -- \n");
     showColumn(tableName, NOTSORT);
@@ -198,9 +203,10 @@ int showAllColumnValue(char *tableName)
 }
 static void sortStringArray(char **stringArray, int size, SORT_ORDER sortOrder)
 {
+	int (*compare)(const void *, const void *);
     if (sortOrder == NOTSORT)
         return ;
-    int (*compare)(const void *, const void *);
+    
     if (sortOrder == DESC)
         compare = descOrderCompare;
     else
