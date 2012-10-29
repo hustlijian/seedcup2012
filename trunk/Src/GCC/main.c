@@ -18,8 +18,6 @@
 int main(int argc, char* argv[])
 {	
 	char str[1024], c, c2;
-	char inputFile[64]="";
-	char outputFile[64]="";
 	int i = 0, j;
 
 	if (argc < 3)
@@ -28,26 +26,13 @@ int main(int argc, char* argv[])
 		return -1;
 	}
 
-	do 
-	{
-		i++;
-		strcat(inputFile, argv[i]);
-		strcat(inputFile, " ");
-	} while (strcmp(&argv[i][strlen(argv[i])-4] , ".txt"));
 
-	do 
+	if(freopen(argv[1], "r", stdin)==NULL)
 	{
-		i++;
-		strcat(outputFile, argv[i]);
-		strcat(outputFile, " ");
-	} while (strcmp(&argv[i][strlen(argv[i])-4] , ".txt"));
-
-	if(freopen(inputFile, "r", stdin)==NULL)
-	{
-		printf("can not open %s\n", inputFile);
+		printf("can not open %s\n", argv[1]);
 		return -1;
 	}
-	freopen(outputFile,"w", stdout);
+	freopen(argv[2],"w", stdout);
 
 	do 
 	{
