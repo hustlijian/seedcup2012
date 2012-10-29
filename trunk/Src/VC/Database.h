@@ -32,14 +32,14 @@ typedef struct column {
     ColumnValue *columnValueHead;
 } Column;
 typedef struct table {
-    char tableName[NAME_MAX];      
-    struct table *next;   
+    char tableName[NAME_MAX];
+    struct table *next;
     Column *columnHead;
 }Table;
 
 typedef struct database {
-    char databaseName[NAME_MAX];        
-    struct database *next;              
+    char databaseName[NAME_MAX];
+    struct database *next;
     Table *tableHead;
 }Database;
 
@@ -63,5 +63,10 @@ Database *searchDatabase(char *databaseName, Database **prior);
 * 查找table底下所有的Column并将其存储在最大容量为size的allColumn里，函数返回Column的数目
 */
 int getAllColumn(Table *table, Column **allColumn, int size);
+
+/**
+* 忽略大小写比较字符串str1,str2是否一样，相同返回0
+*/
+int mystrcmp(const char *str1, const char *str2);
 
 #endif // DATABASE_H_INCLUDED
