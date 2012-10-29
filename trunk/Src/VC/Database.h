@@ -67,6 +67,6 @@ int getAllColumn(Table *table, Column **allColumn, int size);
 /**
 * 忽略大小写比较字符串str1,str2是否一样，相同返回0
 */
-int mystrcmp(const char *str1, const char *str2);
+extern int mystrcmp(const char *str1, const char *str2);
 
 #endif // DATABASE_H_INCLUDED

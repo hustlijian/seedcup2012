@@ -16,6 +16,7 @@
 #include "DatabaseAPI.h"
 
 #define ROW_MAX 20
+#define SIZE 20
 
 extern int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmount,
                    ColumnValue **resultColumnValue, Condition *condition, int isInner);
@@ -66,9 +67,10 @@ extern Database *currentDatabase;
  */
 int select(SelectBody *selectBody)
 {
+	int result;
     if (selectBody == NULL)
         return -1;
-    int result;
+    
     if (selectBody->isInner)
         result = handleInnerSelect(selectBody);
     else
@@ -83,26 +85,30 @@ int select(SelectBody *selectBody)
  */
 int update(UpdateBody *updateBody)
 {
+	int size;
+	ColumnValue *columnsValue[SIZE];
+    COLUMN_TYPE columnType[SIZE];
+    int hasBadColumnName = 0;
+	ColumnValue *columnValueTra;
+	int findColumnValue;
+    int result = 0;
+    int i;
+    int haveFoundOne = 0;
+
     Table *table = searchTable(updateBody->tableName);
     Column *updatedColumn = searchColumn(table, updateBody->updatedColumn,
                                   NULL);
     if (updatedColumn == NULL)
         return -1;
 
-    int size = updateBody->columnAmount;
-    ColumnValue *columnsValue[size];
-    COLUMN_TYPE columnType[size];
-    int hasBadColumnName = 0;
+    size = updateBody->columnAmount;
+    
     hasBadColumnName = getColumnsValue(table, updateBody->columnsName,
                                        columnsValue, columnType, size);
     if (hasBadColumnName == 1)
         return -1;
 
-    ColumnValue *columnValueTra = updatedColumn->columnValueHead;
-    int findColumnValue;
-    int result = 0;
-    int i;
-    int haveFoundOne = 0;
+    columnValueTra = updatedColumn->columnValueHead;
 
     if (updatedColumn->columnType != updateBody->oldValue.columnType) //类型不匹配
         return -1;
@@ -134,6 +140,14 @@ int update(UpdateBody *updateBody)
  */
 int delete(char *tableName, char *columnName, Value value)
 {
+	Column *allColumn[SIZE];
+    int size;
+	int columnNmber;
+	ColumnValue *current[SIZE];
+    ColumnValue *prior[SIZE];
+    int atFirstNode = 1;
+    int haveFoundOne = 0;
+    int result = 0;
     Table *table = searchTable(tableName);
     Column *column = searchColumn(table, columnName, NULL);
     if (column == NULL)
@@ -141,18 +155,12 @@ int delete(char *tableName, char *columnName, Value value)
     if (value.columnType == EMPTY || column->columnType != value.columnType) //类型不匹配
         return -1;
 
-    Column *allColumn[SIZE];
-    int size;
+   
     size = getAllColumn(table, allColumn, SIZE);
     if (hasNoneType(allColumn, size))
         return -1;
 
-    int columnNmber = getColumnNumber(table, column);
-    ColumnValue *current[SIZE];
-    ColumnValue *prior[SIZE];
-    int atFirstNode = 1;
-    int haveFoundOne = 0;
-    int result = 0;
+    columnNmber = getColumnNumber(table, column);
 
     initCurrent(allColumn, current, size);
 
@@ -188,19 +196,20 @@ int delete(char *tableName, char *columnName, Value value)
  */
 int insert(char *tableName, char **columnsName, Value *values, int amount)
 {
+	Column *allColumn[SIZE];
+    int size;
+	int insertedColumnPos[SIZE];
+    int hasBadColumnName = 0;
+    int i;
+	int result;
     Table *table = searchTable(tableName);
     if (table == NULL)
         return -1;
-
-    Column *allColumn[SIZE];
-    int size;
+    
     size = getAllColumn(table, allColumn, SIZE);
     if (amount > size)
         return -1;
 
-    int insertedColumnPos[amount];
-    int hasBadColumnName = 0;
-    int i;
     for (i = 0; i < amount; i++)
         insertedColumnPos[i] = i;
 
@@ -210,7 +219,6 @@ int insert(char *tableName, char **columnsName, Value *values, int amount)
     if (hasBadColumnName)
         return -1;
 
-    int result;
     result = insertColumnsValue(allColumn, size, insertedColumnPos, values, amount);
     return result;
 }
@@ -219,6 +227,9 @@ static int handleInnerSelect(SelectBody *selectBody)
     Table *table = searchTable(selectBody->tableName);
     int columnAmount;
     char *columnName;
+	Column *selectedColumn;
+	ColumnValue *resultColumnsValue;
+    int rowAmount;
 
     if (selectBody->columnsName == NULL)
     {
@@ -229,12 +240,10 @@ static int handleInnerSelect(SelectBody *selectBody)
     } else {
         columnName = selectBody->columnsName[0];
     }
-    Column *selectedColumn = searchColumn(table, columnName, NULL);
+    selectedColumn = searchColumn(table, columnName, NULL);
     if (selectedColumn == NULL)
         return -1;
 
-    ColumnValue *resultColumnsValue;
-    int rowAmount;
     rowAmount = getResultColumnValue(table, &selectedColumn, 1, &resultColumnsValue,
                                      selectBody->condition, 1);
     if (rowAmount != 1)
@@ -245,10 +254,13 @@ static int handleInnerSelect(SelectBody *selectBody)
 }
 static int getColumnAmount(Table *table)
 {
+	Column *columnTra;
+	int i;
+
     if (table == NULL)
         return 0;
-    Column *columnTra = table->columnHead;
-    int i;
+    columnTra = table->columnHead;
+
     for (i = 0; columnTra != NULL; i++)
         columnTra = columnTra->next;
     return i;
@@ -274,10 +286,18 @@ static void assignValue(Value *value, Data data, COLUMN_TYPE columnType)
 }
 static int handleOuterSelect(SelectBody *selectBody)
 {
+	int columnAmount;
+	Column *selectedColumns[SIZE];
+    COLUMN_TYPE columnType[SIZE];
+    int i;
+    int sortByWhich = -1;
+	ColumnValue *resultColumnsValue[SIZE*ROW_MAX];
+    int rowAmount;
+
     Table *table = searchTable(selectBody->tableName);
     if (table == NULL)
         return -1;
-    int columnAmount;
+    
     if (selectBody->columnsName == NULL)
         columnAmount = getColumnAmount(table);
     else
@@ -288,10 +308,7 @@ static int handleOuterSelect(SelectBody *selectBody)
         return 0;
     }
 
-    Column *selectedColumns[columnAmount];
-    COLUMN_TYPE columnType[columnAmount];
-    int i;
-    int sortByWhich = -1;
+    
     if (selectBody->sortColumnName == NULL)
     {
         sortByWhich = 0;
@@ -317,8 +334,6 @@ static int handleOuterSelect(SelectBody *selectBody)
     if (sortByWhich < 0)
         return -1;
 
-    ColumnValue *resultColumnsValue[columnAmount*ROW_MAX];
-    int rowAmount;
     rowAmount = getResultColumnValue(table, selectedColumns, columnAmount, resultColumnsValue,
                                      selectBody->condition, 0);
 
@@ -336,8 +351,9 @@ static int handleOuterSelect(SelectBody *selectBody)
 static void outputResult(ColumnValue **columnsValue, COLUMN_TYPE *columnType, int columnAmount,
                         int rowAmount, int sortByWhich, SORT_ORDER sortOrder)
 {
-    char *stringArray[rowAmount*columnAmount];
+    char *stringArray[ROW_MAX*SIZE];
     int i, j;
+	char *stringTemp;
 
 
     for (i = 0; i < rowAmount; i++)
@@ -350,7 +366,6 @@ static void outputResult(ColumnValue **columnsValue, COLUMN_TYPE *columnType, in
     }
     sortStringArray(stringArray, rowAmount, columnAmount, sortByWhich, sortOrder);
 
-    char *stringTemp;
     for (i = 0; i < rowAmount; i++)
     {
         for (j = 0; j < columnAmount; j++)
@@ -397,20 +412,19 @@ static void assignString(char *string, ColumnValue *columnValue, COLUMN_TYPE col
 static void sortStringArray(char **stringArray, int rowAmount, int columnAmount, int sortByWhich,
                        SORT_ORDER sortOrder)
 {
+	int i, j;
+    int finalOrder[ROW_MAX];
+	char *stringTemp[ROW_MAX*SIZE];
+    int finalRow;
+
     if (sortOrder == NOTSORT)
         return ;
-
-    int i, j;
-    int finalOrder[rowAmount];
 
     for (i = 0; i < rowAmount; i++)
         finalOrder[i] = i;
 
     getFinalOrder(stringArray+sortByWhich, rowAmount, columnAmount, sortOrder, finalOrder);
 
-
-    char *stringTemp[rowAmount*columnAmount];
-    int finalRow;
     for (i = 0; i < rowAmount*columnAmount; i++)
         stringTemp[i] = stringArray[i];
     for (i = 0; i < rowAmount; i++)
@@ -429,7 +443,7 @@ static void getFinalOrder(char **string, int rowAmount, int columnAmount, SORT_O
     int (*compare)(const char *, const char *);
     int swapTemp;
     char *stringSwapTemp;
-    char *sortedStrings[rowAmount];
+    char *sortedStrings[ROW_MAX];
 
     if (sortOrder == DESC)
         compare = descOrderCompare;
@@ -483,12 +497,14 @@ static int containsBlank(char *string)
 static int getColumnsValue(Table *table, char **columnsName, ColumnValue **columnValue,
                     COLUMN_TYPE *columnType, int size)
 {
+	Column *columnHead;
+	Column *columnTra;
+    int i;
+
     if (table == NULL)
         return 1;
 
-    Column *columnHead = table->columnHead;
-    Column *columnTra;
-    int i;
+    columnHead = table->columnHead;
 
     for (i = 0; i < size; i++)
     {
@@ -570,11 +586,14 @@ static void assignData(ColumnValue *columnValue, Value newValue)
 }
 int getAllColumn(Table *table, Column **allColumn, int maxSize)
 {
+	Column *columnTra;
+	int i;
+    int count = 0;
+
     if (table == NULL)
         return 0;
-    Column *columnTra = table->columnHead;
-    int i;
-    int count = 0;
+    columnTra = table->columnHead;
+    
     for (i = 0; i < maxSize && columnTra != NULL; i++)
     {
         allColumn[count] = columnTra;
@@ -653,11 +672,13 @@ static void moveAllColumnPointer(ColumnValue **current, ColumnValue **prior, int
 }
 static int getInsertedColumnPos(Table *table, int *position, char **columnsName, int size)
 {
-    if (table == NULL)
-        return -1;
-    Column *columnTra;
+	Column *columnTra;
     int i;
     int count;
+
+    if (table == NULL)
+        return -1;
+    
     for (i = 0; i < size ; i++)
     {
         columnTra = table->columnHead;
@@ -681,14 +702,16 @@ static int getInsertedColumnPos(Table *table, int *position, char **columnsName,
 static int insertColumnsValue(Column **columns, int columnSize, int *insertedColumnPos,
                               Value *values, int valueSize)
 {
-    int isSameType = sameType(columns, insertedColumnPos, values, valueSize);
+	int i;
+    int count = 0;
+	ColumnValue *newColumnsValue[ROW_MAX];
+    ColumnValue *columnsValueTra[ROW_MAX];
+	int isSameType;
+
+    isSameType = sameType(columns, insertedColumnPos, values, valueSize);
     if (!isSameType)
         return -1;
 
-    int i;
-    int count = 0;
-    ColumnValue *newColumnsValue[columnSize];
-    ColumnValue *columnsValueTra[columnSize];;
     for (i = 0; i < columnSize; i++)
     {
         newColumnsValue[i] = calloc(1, sizeof(ColumnValue));
