@@ -1,9 +1,24 @@
+/**
+ * @file	Tree.c
+ * @author  lijian <hustlijian@gmail.com>
+ * @version 1.0
+ *
+ * @section DESCRIPTION
+ *
+ * 对语法树进行处理的函数集合
+ */
+
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "Tree.h"
 #include "DatabaseAPI.h"
 
+/*
+ *功能：
+ *		拷贝Value，从b 到 a
+ */
 int copyValue(Value *a,const Value *b)
 {
 	a->columnType = b->columnType;
@@ -24,6 +39,10 @@ int copyValue(Value *a,const Value *b)
 	}
 	return 0;
 }
+/*
+ *功能：
+ *		拷贝节点中的value
+ */
 int copyNodeValue(Node *T, NodeValue *value)
 {
 	Condition *con;
@@ -49,6 +68,10 @@ int copyNodeValue(Node *T, NodeValue *value)
 	}
 	return 0;
 }
+/*
+ *功能：
+ *		设置节点T的子节点，且赋值为value
+ */
 Node *setChildTree(Node *T, NodeValue *value)
 {
 	Node *temp;
@@ -61,6 +84,10 @@ Node *setChildTree(Node *T, NodeValue *value)
 	return temp;
 }
 
+/*
+ *功能：
+ *		设置节点T的孩子的兄弟节点，且赋值为value
+ */
 Node *setBrotherTree(Node *T, NodeValue *value)
 {
 	Node *temp, *temp2;
@@ -78,13 +105,20 @@ Node *setBrotherTree(Node *T, NodeValue *value)
 	return temp;
 }
 
-//是叶子
+/*
+ *功能：
+ *		判断是否是条件节点，
+ */
 int checkNodeCondition(Node *T)
 {
 	if (T->nodeValue.nodeType == CONDITION)
 		return 1;
 	return 0;
 }
+/*
+ *功能：
+ *		确定节点T的父节点是否是or,and节点
+ */
 int checkNodeLogic(Node *T)
 {//T->parent && T->brother
 	if (T->parent==NULL || T->brother==NULL)
@@ -94,7 +128,10 @@ int checkNodeLogic(Node *T)
 		return 1;
 	return 0;
 }
-
+/*
+ *功能：
+ *		遍历语法树，生成一个condition的链表
+ */
 void Link(Node *T, Node **tail, Condition **conditon)
 {
 	if (T==NULL) return ;
@@ -114,6 +151,10 @@ void Link(Node *T, Node **tail, Condition **conditon)
 	}
 	Link(T->brother, tail, conditon);
 }
+/*
+ *功能：
+ *		去除语法树中的空节点
+ */
 void changeTree(Node **T)
 {
 	Node *p;
@@ -145,7 +186,10 @@ void changeTree(Node **T)
 		}
 	}
 }
-
+/*
+ *功能：
+ *		拷贝语法树，从T，到end为止
+ */
 Node* copyNode(Node *T, Node *end)
 {
 	Node *temp;
@@ -159,6 +203,10 @@ Node* copyNode(Node *T, Node *end)
 	temp->brother = copyNode(T->brother, end);
 	return temp;
 }
+/*
+ *功能：
+ *		释放语法树T
+ */
 void freeNode(Node *T)
 {
 	if (T==NULL)
@@ -167,6 +215,10 @@ void freeNode(Node *T)
 	freeNode(T->brother);
 	freeNode(T);
 }
+/*
+ *功能：
+ *		展开语法树中的括号
+ */
 void cutTree(Node **T)
 {
 	Node *p = *T;
@@ -238,7 +290,10 @@ void cutTree(Node **T)
 	}
 	cutTree(&(p->brother));
 }
-
+/*
+ *功能：
+ *		输出语法树，用来调试
+ */
 void PrintBiTree(Node *T, int depth)
 {
 	int i;

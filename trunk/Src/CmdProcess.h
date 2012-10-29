@@ -1,3 +1,14 @@
+/**
+ * @file	CmdProcess.h
+ * @author  lijian <hustlijian@gmail.com>
+ * @version 1.0
+ *
+ * @section DESCRIPTION
+ *
+ * 代码解析的头文件，定义了词扫描码，解析函数
+ */
+
+
 #ifndef CMDPROCESS_H
 #define CMDPROCESS_H
 
@@ -11,43 +22,43 @@
 #define NUM_SPACE		3
 #define MAX_WORDLEGTH  1024
 
-#define SYN_CREATE		1
-#define SYN_DATABASE	2
-#define SYN_TABLE		3
-#define SYN_ALTER		4
-#define SYN_TRUNCATE	5
-#define SYN_ADD			6
-#define SYN_COLUMN		7
-#define SYN_USE			8
-#define SYN_DROP		9
-#define SYN_RENAME		10
-#define SYN_SELECT		11
-#define SYN_FROM		12
-#define SYN_WHERE		13
-#define SYN_ORDER		14
-#define SYN_BY			15
-#define SYN_DESC		16
-#define SYN_INCR		17
-#define SYN_UPDATE		18
-#define SYN_SET			19
-#define SYN_DELETE		20
-#define SYN_INSERT		21
-#define SYN_INTO		22
-#define SYN_VALUES		23
-#define SYN_SHOW		24
-#define SYN_DATABASES	25
-#define SYN_INT			26
-#define SYN_FLOAT		27
-#define SYN_TEXT		28
-#define SYN_NONE		29
-#define SYN_BETWEEN		30
-#define SYN_LIKE		31
-#define SYN_AND			32
-#define SYN_OR			33
+#define SYN_CREATE		1		//create
+#define SYN_DATABASE	2		//database
+#define SYN_TABLE		3		//table
+#define SYN_ALTER		4		//alter
+#define SYN_TRUNCATE	5		//truncate
+#define SYN_ADD			6		//add
+#define SYN_COLUMN		7		//column
+#define SYN_USE			8		//use
+#define SYN_DROP		9		//drop
+#define SYN_RENAME		10		//rename
+#define SYN_SELECT		11		//select
+#define SYN_FROM		12		//from
+#define SYN_WHERE		13		//where
+#define SYN_ORDER		14		//order
+#define SYN_BY			15		//by
+#define SYN_DESC		16		//desc
+#define SYN_INCR		17		//incr
+#define SYN_UPDATE		18		//update
+#define SYN_SET			19		//set
+#define SYN_DELETE		20		//delete
+#define SYN_INSERT		21		//insert
+#define SYN_INTO		22		//into
+#define SYN_VALUES		23		//values
+#define SYN_SHOW		24		//show
+#define SYN_DATABASES	25		//databases
+#define SYN_INT			26		//int
+#define SYN_FLOAT		27		//float
+#define SYN_TEXT		28		//text
+#define SYN_NONE		29		//none
+#define SYN_BETWEEN		30		//between
+#define SYN_LIKE		31		//like
+#define SYN_AND			32		//and
+#define SYN_OR			33		//or
 
-#define SYN_IDENTIFIER	40
-#define SYN_INTEGER_NUMBER	41
-#define SYN_FLOAT_NUMBER	42
+#define SYN_IDENTIFIER	40		//identifier
+#define SYN_INTEGER_NUMBER	41	//integer number
+#define SYN_FLOAT_NUMBER	42	//float number
 
 #define SYN_OPERATOR_BASE	50
 #define SYN_PAREN_LEFT	50		//(
@@ -142,11 +153,7 @@ int setSort(SORT_ORDER *sortOrder, char *sortColumn);
 int setOneWhere(Condition *condition);
 //检查是否有or,and
 int checkLogic();
-/*
- *复杂逻辑运算
- *调用前须保存全局指针P，调用后将全局指针指向表达式之后
- */
-int logicalExpProc(char *expStr, Condition **expList);
+
 //处理select命令
 int selectCmd(int isInner, Value *resultValue);
 /* 处理一条命令cmd */

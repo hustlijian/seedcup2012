@@ -1,3 +1,14 @@
+/**
+ * @file	main.c
+ * @author  lijian <hustlijian@gmail.com>
+ * @version 1.0
+ *
+ * @section DESCRIPTION
+ *
+ * 读取一行命令，以分号结尾，调用一行命令的解析函数，根据返回值报错
+ */
+
+
 #include <stdio.h>
 #include <ctype.h>
 #include <string.h>
@@ -42,7 +53,7 @@ int main(int argc, char* argv[])
 	{
 		for (i=0,c2=c=getchar();c!=';'&&c!=EOF;) {
 			str[i++]=c;			
-			if (c2=='/' && c=='/' && i>1)
+			if (c2=='/' && c=='/' && i>1)//行注释
 			{
 				i-= 2;
 				str[i] = '\0';
@@ -54,7 +65,7 @@ int main(int argc, char* argv[])
 			{
 				i-= 2;
 				str[i] = '\0';
-				while(1)
+				while(c!=EOF)
 				{
 					c = getchar();
 					if (c2 == '*' && c == '/')
