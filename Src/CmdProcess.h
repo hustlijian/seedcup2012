@@ -2,6 +2,7 @@
 #define CMDPROCESS_H
 
 #include "DatabaseAPI.h"
+#include "Tree.h"
 
 #define NUM_KEYWORDS 33
 #define MAX_KEYWORDS_LENGTH 10
@@ -150,5 +151,12 @@ int logicalExpProc(char *expStr, Condition **expList);
 int selectCmd(int isInner, Value *resultValue);
 /* 处理一条命令cmd */
 int processCmd(char *cmd);
+
+//LOGIC
+int expression(Node *T);
+int term(Node *T);
+int factor(Node *T);
+//复杂and, or表达式，化为链，去除括号
+int setLogicWhere(char *str, Condition **conditon);
 
 #endif //CMDPROCESS_H

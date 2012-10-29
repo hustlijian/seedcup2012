@@ -16,7 +16,7 @@ typedef struct {
 		char *textValue;
 	} columnValue;
 } Value;
-typedef struct condition {
+typedef struct  condition{
 	char columnName[NAME_MAX];
 	Value value;
 	Value value2;

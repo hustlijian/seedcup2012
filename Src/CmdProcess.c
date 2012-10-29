@@ -6,6 +6,7 @@
 #include "expression.h"
 #include "DatabaseAPI.h"
 #include "LogicExpStruct.h"
+#include "Tree.h"
 
 #define COL_NUM		20
 #define NAME_LENGHT 25
@@ -1126,11 +1127,12 @@ int setSort(SORT_ORDER *sortOrder, char *sortColumn)
 	return 0;
 }
 //获得一个where的条件
-int setWhere(Condition *condition)
+int setWhere(Condition **condition)
 {
 	char expStr[1024];
 	char *temp = p;//保存当前命令位置
 	int num, i;
+	(*condition) = (Condition *)malloc(sizeof(Condition));
 
 	if (checkLogic())//复合and,or
 	{
@@ -1149,7 +1151,7 @@ int setWhere(Condition *condition)
 		temp = p+i;		
 		p = expStr;
 
-		if (logicalExpProc(expStr, &condition))
+		if (setLogicWhere(expStr, condition))
 			return -1;	
 		p = temp;
 	}else {//一个条件
@@ -1158,51 +1160,51 @@ int setWhere(Condition *condition)
 			return -1;
 		if (!checkName(word))
 			return -1;
-		strcpy(condition->columnName, word);
+		strcpy((*condition)->columnName, word);
 
 		scaner();
 		switch(syn)
 		{
 		case SYN_EQUAL://==
-			condition->operator = EQ;
+			(*condition)->operator = EQ;
 			break;
 		case SYN_NOT_EQUAL://~=
-			condition->operator = NE;
+			(*condition)->operator = NE;
 			break;
 		case SYN_GREATER://>
-			condition->operator = GT;
+			(*condition)->operator = GT;
 			break;
 		case SYN_LESS://<
-			condition->operator = LT;
+			(*condition)->operator = LT;
 			break;
 		case SYN_MORE_EQUAL://>=
-			condition->operator = GET;
+			(*condition)->operator = GET;
 			break;
 		case SYN_LESS_EQUAL://<=
-			condition->operator = LET;
+			(*condition)->operator = LET;
 			break;
 		case SYN_LIKE://like
-			condition->operator = LIKE;
+			(*condition)->operator = LIKE;
 			break;
 		case SYN_BETWEEN://between
-			condition->operator = BETWEEN;
+			(*condition)->operator = BETWEEN;
 			break;
 		default:
 			return -1;
 			break;
 		}
-		condition->logic = NOLOGIC;
-		if (condition->operator == BETWEEN)//between[value1, value2]
+		(*condition)->logic = NOLOGIC;
+		if ((*condition)->operator == BETWEEN)//between[value1, value2]
 		{
 			scaner();
 			if (syn!=SYN_BRACKET_LEFT)//[
 				return -1;
-			if(getValue(&(condition->value)))//value1
+			if(getValue(&((*condition)->value)))//value1
 				return -1;
 			scaner();
 			if (syn!=SYN_COMMA)//,
 				return -1;
-			if (getValue(&(condition->value2)))//value2
+			if (getValue(&((*condition)->value2)))//value2
 				return -1;
 			scaner();
 			if (syn!=SYN_BRACKET_RIGHT)//]
@@ -1210,10 +1212,10 @@ int setWhere(Condition *condition)
 		} else
 		{
 			//getvalue
-			if (getValue(&(condition->value)))
+			if (getValue(&((*condition)->value)))
 				return -1;
 		}
-		condition->next = NULL;
+		(*condition)->next = NULL;
 	}
 	return 0;
 }
@@ -1239,7 +1241,7 @@ int selectCmd(int isInner, Value *resultValue)
 	
 	char sortColumnName[NAME_LENGHT];
 	SORT_ORDER sortOrder = NOTSORT;
-	Condition conditon;
+	Condition *conditon;
 	Condition *temp;
 	char *q;
 
@@ -1283,7 +1285,7 @@ int selectCmd(int isInner, Value *resultValue)
 	{	
 		if (setWhere(&conditon))
 			return -1;
-		selectBody.condition = &conditon; //设置选择条件
+		selectBody.condition = conditon; //设置选择条件
 		q = p;
 		scaner();
 		if (syn==SYN_ORDER){
@@ -1385,188 +1387,94 @@ int processCmd(char *cmd)
 	}
 	return flag;
 }
-/*
- *复杂逻辑运算
- *调用前须保存全局指针P，调用后将全局指针指向表达式之后
- */
-int logicalExpProc(char *expStr, Condition **expList)
-{
-	LogicExpStack lExpTmpStk, lExpPloStk;
-	LogicExpStack lExpRevPloStk, lExpRevPloStk2;
-	char *e;
-	int w, i;
-	Condition *locHeadList, *locTailList;
 
-	locHeadList = (Condition *)malloc(sizeof(Condition));
-	locTailList = locHeadList;
-	locTailList->next = NULL;
-	*expList = locHeadList;
-	//e = (char *)calloc(NAME_MAX, sizeof(char));
-	if(logicalExpStkInit(&lExpTmpStk))
+
+int nextSyn()
+{
+	char *temp = p;
+	scaner();
+	p = temp;
+	return syn;
+}
+//expression
+int expression(Node *T)
+{
+	NodeValue value;
+
+	value.nodeType = EMP;
+	if(term(setChildTree(T, &value)))
 		return -1;
-	if (logicalExpStkInit(&lExpPloStk))
-		return -1;
-	if (logicalExpStkInit(&lExpRevPloStk))
-		return -1;
-	if (logicalExpStkInit(&lExpRevPloStk2))
-		return -1;
-	logicalExpStkPush(&lExpTmpStk, "$", 0);	//$优先级最低
-	p=expStr;
-	while(p != NULL)
+
+	while(nextSyn() == SYN_OR)//OR
 	{
 		scaner();
-		if (syn == SYN_PAREN_LEFT || syn == SYN_PAREN_RIGHT ||
-			syn == SYN_OR || syn == SYN_AND)	//运算符
-		{
-			switch(syn)
-			{
-			case SYN_PAREN_LEFT:	//压入lExpTmpStk
-				logicalExpStkPush(&lExpTmpStk, word, 1);
-				break;
-			case SYN_PAREN_RIGHT:
-				if (logicalExpStkGetTop(&lExpTmpStk, &e, &w))
-					return -1;
-				while(strcmp(e, "("))
-				{
-					if(logicalExpStkPop(&lExpTmpStk, &e, &w))
-						return -1;
-					logicalExpStkPush(&lExpPloStk, e, 2);
-					if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
-						return -1;
-				}
-				if(logicalExpStkPop(&lExpTmpStk, &e, &w))
-					return -1;
-				break;
-			case SYN_OR:
-			case SYN_AND:
-				for (; strcmp(e, "$");)
-				{
-					if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
-						return -1;
-					if (!strcmp(e, "("))
-						break;
-					else
-					{
-						if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
-							return -1;
-						if(logicalExpStkGetTop(&lExpPloStk, &e, &w))
-							return -1;
-						while (w >= 3 && strcmp(e, "("))
-						{
-							if(logicalExpStkPop(&lExpTmpStk, &e, &w))
-								return -1;
-							logicalExpStkPush(&lExpPloStk, e, 3);
-							if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
-								return -1;
-						}
-					}
-					if(logicalExpStkGetTop(&lExpTmpStk, &e, &w))
-						return -1;
-				}
-				logicalExpStkPush(&lExpTmpStk, word, 3);
-				break;
-			default:
-				break;
-			}
-		}
-		else	//操作数，即条件，压入lExpPloStk栈
-			if(SYN_QUOTE != syn && SYN_BRACKET_LEFT != syn &&
-				SYN_BRACKET_RIGHT != syn && SYN_COMMA != syn)
-				logicalExpStkPush(&lExpPloStk, word, 4);
+		T->nodeValue.logic= OR;
+		T->nodeValue.nodeType = LOG;
+		if (term(setBrotherTree(T, &value)))
+			return -1;		
 	}
-	if(logicalExpStkPop(&lExpTmpStk, &e, &w))
-		return -1;
-	while (strcmp(e, "$"))	//若lExpTmpStk不空，将剩余操作符弹出到lExpPloStk
-	{
-		if (!strcmp(e, "(") || !strcmp(e, ")"))
-			return -1;
-		logicalExpStkPush(&lExpPloStk, e, w);
-		if (logicalExpStkPop(&lExpTmpStk, &e, &w))
-			return -1;	
-	}
-	//逆序弹出lExpPloStk输出即为逆波兰式
-	logicalExpStkPush(&lExpRevPloStk, "$", 0);
-	while (logicalExpStkEmpty(&lExpPloStk))
-	{
-		if (logicalExpStkPop(&lExpPloStk, &e, &w))
-			return -1;
-		logicalExpStkPush(&lExpRevPloStk, e, w);
-	}
-	//处理逆波兰式，写入链表
-	do
-	{
-		if(logicalExpStkPop(&lExpRevPloStk, &e, &w))
-			return -1;
-		if (SYN_AND == getTypeNum(e) || 
-			SYN_OR == getTypeNum(e) || 
-			!strcmp(e, "$"))
-		{
-			locTailList->logic = getLogicType(e);		//与或逻辑
-
-			if(logicalExpStkPop(&lExpRevPloStk2, &e, &w))//第一个值
-				return -1;	
-			locTailList->value.columnType = getValueType(e);
-			switch(getValueType(e))
-			{
-			case INT:
-				locTailList->value.columnValue.intValue = atoi(e);
-				break;
-			case FLOAT:
-				locTailList->value.columnValue.floatValue = (float)atof(e);
-				break;
-			case TEXT:
-				i = 0;
-				locTailList->value.columnValue.textValue = (char *)malloc(NAME_MAX * sizeof(char));
-				do 
-				{
-					locTailList->value.columnValue.textValue[i] = e[i];
-					if(!isalnum(locTailList->value.columnValue.textValue[i]) &&
-						locTailList->value.columnValue.textValue[i]!=' ' &&
-						locTailList->value.columnValue.textValue[i] != '_')
-					{	//必须是字符数字，或者空格，下划线 
-						return -1;
-					}
-					i++;
-
-				} while (e[i]);
-				locTailList->value.columnValue.textValue[i] = '\0';
-				break;
-			}
-			if(logicalExpStkPop(&lExpRevPloStk2, &e, &w))
-				return -1;
-			if (isLgcExpOpt(e))		//第二个值，若有
-			{
-				locTailList->value2.columnType = getValueType(e);
-				switch(getValueType(e))
-				{
-				case INT:
-					locTailList->value2.columnValue.intValue = atoi(e);
-					break;
-				case FLOAT:
-					locTailList->value2.columnValue.floatValue = (float)atof(e);
-					break;
-				}
-				if(logicalExpStkPop(&lExpRevPloStk2, &e, &w))
-					return -1;
-			}
-			else
-				locTailList->value2.columnType = EMPTY;
-			locTailList->operator = getOptType(e);//操作符
-
-			if(logicalExpStkPop(&lExpRevPloStk2, &e, &w))//列名
-				return -1;	
-			strcpy(locTailList->columnName, e);
-
-			locTailList->next = (Condition *)malloc(sizeof(Condition));
-			locTailList = locTailList->next;
-			locTailList->next = NULL;
-		}
-		else
-			logicalExpStkPush(&lExpRevPloStk2, e, w);
-	}while (logicalExpStkEmpty(&lExpRevPloStk2));
-	*expList = locHeadList;
-			
 	return 0;
-
 }
+//term
+int term(Node *T)
+{
+	NodeValue value;
 
+	value.nodeType = EMP;
+	if(factor(setChildTree(T, &value)))
+		return -1;
+
+	while(nextSyn() == SYN_AND)//AND
+	{
+		scaner();
+		T->nodeValue.logic= AND;
+		T->nodeValue.nodeType = LOG;
+		if(factor(setBrotherTree(T, &value)))
+			return -1;
+	}
+    return 0;
+}
+//factor
+int factor(Node *T)
+{
+	char *temp = p;
+	scaner();
+    switch(syn)
+	{
+    case SYN_IDENTIFIER://conditon 
+		T->child = T->brother = NULL;
+		T->nodeValue.nodeType = CONDITION;
+		p = temp;
+		setWhere(&(T->nodeValue.condition));
+		break;
+    case SYN_PAREN_LEFT://(
+        expression(T);
+		scaner();
+        if(syn != SYN_PAREN_RIGHT)//)
+			return -1; //less of )
+		break;
+    default: 
+		return -1;
+		break;
+	}
+	return 0;
+}
+//复杂and, or表达式，化为链，去除括号
+int setLogicWhere(char *str, Condition **conditon)
+{
+	Node T;
+	Node *temp = &T;
+	Node *tail = NULL;
+	NodeValue value;
+
+	T.child = T.brother = T.parent = NULL;
+	value.nodeType = EMP;
+	copyNodeValue(&T, &value);
+
+	if(expression(&T))
+		return -1;
+	changeTree(&temp);
+	cutTree(&temp);
+	Link(temp, &tail, conditon);
+	return 0;
+}
