@@ -1,5 +1,5 @@
  /**
- * @file    Database.h
+ * @file    MaintainData.c
  * @author  hzhigeng <hzhigeng@gmail.com>
  * @version 1.0
  *
@@ -16,9 +16,9 @@
 
 
 typedef union {
-        int intValue;					//INT数据
-        float floatValue;				//FLOAT数据
-        char *textValue;				//TEXT数据
+        int intValue;
+        float floatValue;
+        char *textValue;
 } Data;
 typedef struct columnValue {
     Data data;                          //数据存储处
