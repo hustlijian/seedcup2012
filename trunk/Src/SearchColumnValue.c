@@ -1,3 +1,14 @@
+ /**
+ * @file    SearchColumnValue.c
+ * @author  hzhigeng <hzhigeng@gmail.com>
+ * @version 1.0
+ *
+ * @section DESCRIPTION
+ *
+ * Select功能的辅助文件，主要用于根据where条件查找符合条件的所有ColumnValue并将其存储在resultColumnValue里面
+ * 供select函数使用
+ */
+
 #include <stdlib.h>
 #include <string.h>
 #include "Database.h"
@@ -27,7 +38,7 @@ static int likeOperation(Data data, COLUMN_TYPE columnType, Value *value);
 static int matchRegex(const char *string, const char *pattern);
 static int mergeAndOr(int (*andRowNumber)[ROW_MAX], int *andRowAmount, int andCount, int (*orRowNumber)[ROW_MAX],
                       int *orRowAmount, int orCount, int *resultRowNumber);
-static int *compareInt(const void *elem1, const void *elem2);
+static int compareInt(const void *elem1, const void *elem2);
 static int insertToResult(int *rowNumber, int rowAmount, int *result, int resultAmount);
 static int inResult(int number, int *result, int resultAmount);
 
@@ -36,6 +47,18 @@ static int (*operations[8])(Data , COLUMN_TYPE, Value *) = {
     getOperation, letOperation, betweenOperation, likeOperation
 };
 
+
+/**
+ * <查找所有符合条件的ColumnValue>
+ *
+ * @param   table               指向操作的表
+ * @param   selectedColumn      指向select所选择的所有的列
+ * @param   selColumnAmount     select所选择的列的数目
+ * @param   resultColumnValue   存储符合条件的ColumnValue
+ * @param   condition           Condition链表的头指针
+ * @param   isInner             是否处于嵌套内层
+ * @return  合条件的ColumnValue的数目
+ */
 int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmount,
                    ColumnValue **resultColumnValue, Condition *condition, int isInner)
 {
@@ -150,13 +173,6 @@ int getResultColumnValue(Table *table, Column **selectedColumn, int selColumnAmo
                 resultColumnValue[i*selColumnAmount+j] = columnsValueTra[j];
         }
     }
-
-//    COLUMN_TYPE columnType[selColumnAmount];
-//    for (i = 0; i < selColumnAmount; i++)
-//        columnType[i] = selectedColumn[i]->columnType;
-//    for (i = 0; i < resultRowAmount; i++)
-//        for (j = 0; j < selColumnAmount; j++)
-//            outputValue(resultColumnValue[i*selColumnAmount+j], columnType[j]);
     return resultRowAmount;
 }
 static int handleAnd(Table *table, Condition *condition, int *andRowNumber, int andRowAmount)
@@ -244,6 +260,8 @@ static int selectMatchedRow(ColumnValue **columnsValue, COLUMN_TYPE columnType, 
 static int match(ColumnValue *columnValue, COLUMN_TYPE columnType, Condition *condition)
 {
     COLUMN_TYPE conColumnType = condition->value.columnType;
+    if (conColumnType == EMPTY)
+        return -1;
     if (conColumnType != columnType && (conColumnType == TEXT || columnType == TEXT))
         return -1;
     if (columnValue->hasData == 0)
@@ -508,7 +526,7 @@ static int mergeAndOr(int (*andRowNumber)[ROW_MAX], int *andRowAmount, int andCo
         resultAmount = insertToResult(orRowNumber[i], orRowAmount[i], resultRowNumber, resultAmount);
     return resultAmount;
 }
-static int *compareInt(const void *elem1, const void *elem2)
+static int compareInt(const void *elem1, const void *elem2)
 {
     return *(int *)elem1 - *(int *)elem2;
 }

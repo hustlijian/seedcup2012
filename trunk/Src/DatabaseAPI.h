@@ -3,45 +3,60 @@
 
 #define NAME_MAX 25
 
+/**
+* 数据类型，其中EMPTY意味着该数据结点并不包含数据
+*/
 typedef enum {INT, FLOAT, TEXT, NONE, EMPTY} COLUMN_TYPE;
+
+/**
+* 操作符：==, ~=, >, <, >=, <= ,BETWEEN, LIKE
+*/
 typedef enum {EQ, NE, GT, LT, GET, LET, BETWEEN, LIKE} OPERATOR;
+
+/**
+* 排序方式：不排序，降序，升序
+*/
 typedef enum {NOTSORT, DESC, INCR} SORT_ORDER;
+
+/**
+* 逻辑操作符：NOLOGIC主要用于标识不包含逻辑关系的结点及逻辑链表的尾结点
+*/
 typedef enum {OR, AND, NOLOGIC} LOGIC;
 
 typedef struct {
-	COLUMN_TYPE columnType;
+	COLUMN_TYPE columnType;         //数据类型
 	union {
-		int intValue;
-		float floatValue;
-		char *textValue;
+		int intValue;               //INT数据
+		float floatValue;           //FLOAT数据
+		char *textValue;            //TEXT数据
 	} columnValue;
 } Value;
-typedef struct  condition{
-	char columnName[NAME_MAX];
-	Value value;
-	Value value2;
-	OPERATOR operator;
-	LOGIC logic;
-	struct condition *next;
+typedef struct condition {
+	char columnName[NAME_MAX];      //where后每个条件中的列名
+	Value value;                    //第一个数据
+	Value value2;                   //第二个数据，主要用于BETWEEN操作符
+	OPERATOR operator;              //操作符
+	LOGIC logic;                    //逻辑关系
+	struct condition *next;         //Condition链表的next指针
 } Condition;
 typedef struct {
-	char *tableName;
-	char **columnsName;
-	int columnAmount;
-	Value *resultValue;
-	int isInner;   //1为在内层
-	char *sortColumnName;
-	SORT_ORDER sortOrder;
-	Condition *condition;
-} SelectBody;
+	char *tableName;                //select操作的表的名字
+	char **columnsName;             //select操作的列的名字，NULL代表表中的所有列
+	int columnAmount;               //select操作的列的数目
+	Value *resultValue;             //当select为嵌套内层时，此处存储着处理后的结果
+	int isInner;                    //标识是否为嵌套内层，1代表是
+	char *sortColumnName;           //排序所根据的列的列名
+	SORT_ORDER sortOrder;           //排序方式
+	Condition *condition;           //Condition链表，存储着所有where的条件
+} SelectBody;                       //存储着select功能所需的所有参数
 typedef struct {
-	char *tableName;
-	char **columnsName;
-	Value *newValues;
-	int columnAmount;
-	char *updatedColumn;
-	Value oldValue;
-} UpdateBody;
+	char *tableName;                //update操作的表的名字
+	char **columnsName;             //update操作中所有需要更新的列的名字
+	Value *newValues;               //update操作中更新后列的数据
+	int columnAmount;               //需要更新的列的数目
+	char *updatedColumn;            //update中where条件的列名
+	Value oldValue;                 //update中where条件的数据
+} UpdateBody;                       //存储着update功能所需的所有参数
 
 /*在返回值为int的函数中，返回-1代表失败，返回0代表成功*/
 int createDatabase(char *databaseName);
@@ -57,7 +72,6 @@ int renameTable(char *oldName, char *newName);
 
 int select(SelectBody *selectBody);
 int update(UpdateBody *updateBOdy);
-//int delete(char *tableName, Condition *condition);
 int delete(char *tableName, char *column, Value value);
 int insert(char *tableName, char **columnsName, Value *values, int amount);
 

@@ -1,8 +1,19 @@
+ /**
+ * @file    ShowInfo.c
+ * @author  hzhigeng <hzhigeng@gmail.com>
+ * @version 1.0
+ *
+ * @section DESCRIPTION
+ *
+ * 显示部分，用于完成"SHOW DATABASES/TABLE/COLUMN”等相关功能。
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "Database.h"
-#define OUTPUT_MAX 20
+
+#define OUTPUT_MAX  20
 
 static int descOrderCompare(const void *elem1, const void *elem2);
 static int incrOrderCompare(const void *elem1, const void *elem2);
@@ -16,6 +27,12 @@ static void outputValue(ColumnValue *columnValue, COLUMN_TYPE columnType);
 extern Database *head;
 extern Database *currentDatabase;
 
+/**
+ * <显示所有的数据库名字>
+ *
+ * @param   sortOrder     排序方式
+ * @return  0代表操作成功
+ */
 int showDatabase(SORT_ORDER sortOrder)
 {
     char *databasesName[OUTPUT_MAX];
@@ -31,8 +48,8 @@ int showDatabase(SORT_ORDER sortOrder)
 
     while (databaseTra != NULL)
     {
-        databasesName[count] = calloc(LENGTH, sizeof(char));
-        strncpy(databasesName[count++], databaseTra->databaseName, LENGTH-1);
+        databasesName[count] = calloc(NAME_MAX, sizeof(char));
+        strncpy(databasesName[count++], databaseTra->databaseName, NAME_MAX-1);
         databaseTra = databaseTra->next;
     }
     sortStringArray(databasesName, count, sortOrder);
@@ -40,9 +57,15 @@ int showDatabase(SORT_ORDER sortOrder)
     freeStringArray(databasesName, count);
     return 0;
 }
+/**
+ * <显示某个数据库的所有表的名字>
+ *
+ * @param   databaseName     数据库名，NULL代表指定为当前数据库
+ * @param   sortOrder        排序方式
+ * @return  0代表操作成功，-1代表数据库不存在
+ */
 int showTable(char *databaseName, SORT_ORDER sortOrder)
 {
-     //databaseName为NULL时指定为当前数据库
     Database *database;
 
     if (databaseName == NULL)
@@ -64,8 +87,8 @@ int showTable(char *databaseName, SORT_ORDER sortOrder)
 
     while (tableTra != NULL)
     {
-        tablesName[count] = calloc(LENGTH, sizeof(char));
-        strncpy(tablesName[count++], tableTra->tableName, LENGTH-1);
+        tablesName[count] = calloc(NAME_MAX, sizeof(char));
+        strncpy(tablesName[count++], tableTra->tableName, NAME_MAX-1);
         tableTra = tableTra->next;
     }
     sortStringArray(tablesName, count, sortOrder);
@@ -73,6 +96,13 @@ int showTable(char *databaseName, SORT_ORDER sortOrder)
     freeStringArray(tablesName, count);
     return 0;
 }
+/**
+ * <显示某一个表的所有列的名字>
+ *
+ * @param   tableName   表名
+ * @param   sortOrder   排序方式
+ * @return  0代表操作成功，-1代表表不存在
+ */
 int showColumn(char *tableName, SORT_ORDER sortOrder)
 {
     Table *table = searchTable(tableName);
@@ -91,8 +121,8 @@ int showColumn(char *tableName, SORT_ORDER sortOrder)
 
     while (columnTra != NULL)
     {
-        columnsName[count] = calloc(LENGTH, sizeof(char));
-        strncpy(columnsName[count++], columnTra->columnName, LENGTH-1);
+        columnsName[count] = calloc(NAME_MAX, sizeof(char));
+        strncpy(columnsName[count++], columnTra->columnName, NAME_MAX-1);
 
         columnTra = columnTra->next;
     }
@@ -101,7 +131,7 @@ int showColumn(char *tableName, SORT_ORDER sortOrder)
     freeStringArray(columnsName, count);
     return 0;
 }
-int showColumnType(char *tableName)
+static int showColumnType(char *tableName)
 {
     Table *table = searchTable(tableName);
     if (table == NULL)
@@ -121,6 +151,14 @@ int showColumnType(char *tableName)
     putchar('\n');
     return 0;
 }
+/**
+ * <显示某一个表的所有列的数据>
+ *
+ * <此函数主要用于调试>
+ *
+ * @param   tableName   表名
+ * @return  0代表操作成功，-1代表表不存在或该表不含有任何列
+ */
 int showAllColumnValue(char *tableName)
 {
     Table *table = searchTable(tableName);
