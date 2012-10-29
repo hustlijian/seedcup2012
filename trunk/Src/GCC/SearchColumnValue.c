@@ -276,7 +276,7 @@ static int match(ColumnValue *columnValue, COLUMN_TYPE columnType, Condition *co
 static int eqOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
-    float dataFloat, valueFloat;
+    float dataFloat=0;float valueFloat=0;
     if (columnType == INT)
         dataFloat = (float)data.intValue;
     else if (columnType == FLOAT)
@@ -304,7 +304,7 @@ static int eqOperation(Data data, COLUMN_TYPE columnType, Value *value)
 static int neOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
-    float dataFloat, valueFloat;
+    float dataFloat=0;float valueFloat=0;
     if (columnType == INT)
         dataFloat = (float)data.intValue;
     else if (columnType == FLOAT)
@@ -332,7 +332,7 @@ static int neOperation(Data data, COLUMN_TYPE columnType, Value *value)
 static int gtOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
-    float dataFloat, valueFloat;
+    float dataFloat=0;float valueFloat=0;
     if (columnType == INT)
         dataFloat = (float)data.intValue;
     else if (columnType == FLOAT)
@@ -359,7 +359,7 @@ static int gtOperation(Data data, COLUMN_TYPE columnType, Value *value)
 static int ltOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
-    float dataFloat, valueFloat;
+    float dataFloat=0;float valueFloat=0;
     if (columnType == INT)
         dataFloat = (float)data.intValue;
     else if (columnType == FLOAT)
@@ -386,7 +386,7 @@ static int ltOperation(Data data, COLUMN_TYPE columnType, Value *value)
 static int getOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
-    float dataFloat, valueFloat;
+    float dataFloat=0; float valueFloat=0;
     if (columnType == INT)
         dataFloat = (float)data.intValue;
     else if (columnType == FLOAT)
@@ -413,7 +413,8 @@ static int getOperation(Data data, COLUMN_TYPE columnType, Value *value)
 static int letOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
-    float dataFloat, valueFloat;
+    float dataFloat=0;
+    float valueFloat=0;
     if (columnType == INT)
         dataFloat = (float)data.intValue;
     else if (columnType == FLOAT)
@@ -440,7 +441,9 @@ static int letOperation(Data data, COLUMN_TYPE columnType, Value *value)
 static int betweenOperation(Data data, COLUMN_TYPE columnType, Value *value)
 {
     int result = 0;
-    float dataFloat, value1Float, value2Float;
+    float dataFloat=0;
+    float value1Float=0;
+    float value2Float=0;
     if (value[0].columnType == TEXT || value[1].columnType == TEXT)
             return -1;
 
