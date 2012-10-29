@@ -1450,7 +1450,8 @@ int factor(Node *T)
 			return -1;
 		break;
     case SYN_PAREN_LEFT://(
-        expression(T);
+        if (expression(T))
+			return -1;
 		scaner();
         if(syn != SYN_PAREN_RIGHT)//)
 			return -1; //less of )
