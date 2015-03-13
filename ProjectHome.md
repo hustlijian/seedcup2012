@@ -1,0 +1,1 @@
+compete for the seed cup 2012
